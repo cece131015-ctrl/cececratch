@@ -1,0 +1,2513 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CeceCratch — el Scratch del futuro (2D + 3D + IA)</title>
+<style>
+/* ============================================================
+   CeceCratch — hoja de estilo
+   ============================================================ */
+:root{
+  --bg:#070b16;
+  --bg2:#0b1224;
+  --panel:rgba(18,26,48,.82);
+  --panel2:rgba(11,17,34,.9);
+  --line:rgba(120,160,255,.18);
+  --txt:#e8f0ff;
+  --dim:#8fa3cc;
+  --neon:#00e5ff;
+  --neon2:#ff2d95;
+  --neon3:#7c5cff;
+  --ok:#38e08d;
+  --warn:#ffb020;
+  --r:14px;
+  --font:"Segoe UI",Inter,system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;font-family:var(--font);color:var(--txt);
+  background:
+    radial-gradient(1100px 700px at 12% -10%, rgba(124,92,255,.28), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(0,229,255,.20), transparent 55%),
+    radial-gradient(800px 800px at 50% 120%, rgba(255,45,149,.16), transparent 60%),
+    var(--bg);
+  overflow:hidden;
+}
+button,input,select,textarea{font-family:inherit;font-size:13px;color:var(--txt)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-thumb{background:rgba(124,160,255,.28);border-radius:20px}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- barra superior ---------- */
+header{
+  height:56px;display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:linear-gradient(90deg,rgba(10,16,32,.95),rgba(16,24,48,.86));
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(10px);position:relative;z-index:30;
+}
+.brand{display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:.6px;font-size:19px}
+.brand .logo{
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:16px;
+  background:linear-gradient(135deg,var(--neon),var(--neon3) 55%,var(--neon2));
+  box-shadow:0 0 18px rgba(0,229,255,.55);color:#08101f;font-weight:900;
+}
+.brand b{background:linear-gradient(90deg,#8ff6ff,#c9b6ff 50%,#ff9ecb);-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand small{font-weight:500;color:var(--dim);font-size:11px;letter-spacing:.4px}
+.spacer{flex:1}
+.btn,header button,.tabs button,.mini{
+  border:1px solid var(--line);background:rgba(255,255,255,.045);
+  padding:8px 12px;border-radius:10px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.btn:hover,header button:hover,.mini:hover{background:rgba(124,160,255,.18);border-color:rgba(140,190,255,.5);transform:translateY(-1px)}
+button.go{background:linear-gradient(135deg,rgba(56,224,141,.25),rgba(56,224,141,.08));border-color:rgba(56,224,141,.5);color:#c8ffe6}
+button.stop{background:linear-gradient(135deg,rgba(255,80,110,.25),rgba(255,80,110,.06));border-color:rgba(255,90,120,.5);color:#ffd0d8}
+.modes{display:flex;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+.modes button{border:0;border-radius:0;background:transparent;padding:8px 16px;font-weight:700;letter-spacing:.5px}
+.modes button.on{background:linear-gradient(135deg,var(--neon3),var(--neon2));color:#fff;box-shadow:0 0 16px rgba(255,45,149,.35) inset}
+
+/* ---------- estructura ---------- */
+main{display:flex;height:calc(100% - 56px);min-height:0}
+aside#palette{width:302px;min-width:302px;display:flex;background:var(--panel2);border-right:1px solid var(--line)}
+#cats{width:74px;min-width:74px;overflow:auto;padding:8px 5px;border-right:1px solid var(--line)}
+.cat{
+  display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:10px;
+  cursor:pointer;font-size:9.5px;text-align:center;color:var(--dim);line-height:1.15;margin-bottom:3px;
+}
+.cat .dot{width:16px;height:16px;border-radius:50%;box-shadow:0 0 10px currentColor}
+.cat:hover{background:rgba(255,255,255,.05);color:var(--txt)}
+.cat.on{background:rgba(255,255,255,.09);color:#fff;font-weight:700}
+#blocks{flex:1;overflow:auto;padding:12px 10px 90px}
+#blocks h4{margin:2px 0 10px;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--dim)}
+
+section#editor{flex:1;min-width:0;position:relative;display:flex;flex-direction:column}
+#scriptsWrap{
+  flex:1;overflow:auto;position:relative;
+  background-image:radial-gradient(rgba(120,160,255,.14) 1px, transparent 1px);
+  background-size:22px 22px;background-position:-1px -1px;
+}
+#scriptsInner{position:relative;width:3200px;height:2400px}
+.editorBar{
+  position:absolute;right:14px;bottom:12px;display:flex;gap:8px;z-index:12;
+}
+.editorBar .mini{background:var(--panel);backdrop-filter:blur(6px);font-size:12px;padding:7px 11px;border-radius:9px}
+.hintEmpty{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);color:rgba(160,185,235,.4);
+  text-align:center;font-size:14px;pointer-events:none;line-height:1.7}
+
+aside#side{width:520px;min-width:520px;display:flex;flex-direction:column;gap:8px;padding:8px;background:var(--panel2);border-left:1px solid var(--line);overflow:hidden}
+
+/* ---------- escenario ---------- */
+#stageBox{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--line);
+  background:#050912;box-shadow:0 12px 40px rgba(0,0,0,.5), 0 0 40px rgba(0,229,255,.07) inset}
+#stageBox canvas{display:block;width:100%;height:100%;position:absolute;inset:0}
+#stageBox .ratio{width:100%;padding-top:75%}
+#overlay{position:absolute;inset:0;pointer-events:none}
+#vid{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000;display:none}
+.bubble{
+  position:absolute;transform:translate(-50%,-100%);background:#fff;color:#101828;padding:6px 10px;border-radius:12px;
+  font-size:12px;max-width:180px;box-shadow:0 6px 20px rgba(0,0,0,.35);border:2px solid #cfd8ee;
+}
+.bubble.think{border-radius:16px;border-style:dashed}
+.bubble:after{content:"";position:absolute;left:14px;bottom:-9px;border:7px solid transparent;border-top-color:#fff}
+#askBar{position:absolute;left:8px;right:8px;bottom:8px;display:none;gap:6px;z-index:5}
+#askBar input{flex:1;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:rgba(6,10,20,.92)}
+#stageTools{position:absolute;left:8px;top:8px;display:flex;gap:6px;z-index:4}
+.pill{background:rgba(6,10,22,.7);border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--dim);backdrop-filter:blur(4px)}
+
+/* ---------- objetos ---------- */
+#spriteBar{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:8px}
+#spriteBar .head{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;color:var(--dim)}
+#spriteList{display:flex;gap:8px;overflow-x:auto;padding-bottom:3px}
+.sprite{
+  min-width:78px;border-radius:11px;padding:7px 6px;text-align:center;cursor:pointer;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:11px;position:relative
+}
+.sprite.on{border-color:var(--neon);box-shadow:0 0 0 1px var(--neon) inset,0 0 18px rgba(0,229,255,.3)}
+.sprite .th{width:44px;height:44px;margin:0 auto 5px;border-radius:9px;background:rgba(0,0,0,.35);display:grid;place-items:center;overflow:hidden}
+.sprite .th img{max-width:100%;max-height:100%}
+.sprite .x{position:absolute;right:2px;top:1px;opacity:.45;font-size:12px}
+.sprite .x:hover{opacity:1;color:#ff7a90}
+
+/* ---------- paneles inferiores ---------- */
+#bottom{flex:1;min-height:0;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.tabs{display:flex;gap:5px;padding:8px 8px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border-radius:10px 10px 0 0;border-bottom:0;padding:7px 11px;font-size:12px;opacity:.7}
+.tabs button.on{opacity:1;background:rgba(124,160,255,.16);color:#fff;border-color:rgba(140,190,255,.45)}
+.panel{display:none;flex:1;min-height:0;overflow:auto;padding:10px}
+.panel.on{display:block}
+#assetGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.asset{border:1px solid var(--line);border-radius:10px;padding:6px;background:rgba(255,255,255,.04);font-size:10.5px;text-align:center;position:relative}
+.asset .th{height:56px;display:grid;place-items:center;border-radius:7px;background:rgba(0,0,0,.32);overflow:hidden;margin-bottom:5px;font-size:22px}
+.asset .th img{max-width:100%;max-height:100%}
+.asset .nm{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--dim)}
+.asset .acts{display:flex;gap:4px;justify-content:center;margin-top:5px}
+.asset .acts button{padding:3px 6px;font-size:10px;border-radius:6px;border:1px solid var(--line);background:rgba(255,255,255,.05);cursor:pointer}
+.asset .acts button:hover{background:rgba(124,160,255,.2)}
+.dropzone{border:1.5px dashed rgba(124,160,255,.35);border-radius:12px;padding:14px;text-align:center;color:var(--dim);font-size:12px;margin-bottom:10px;cursor:pointer}
+.dropzone:hover,.dropzone.hot{border-color:var(--neon);color:var(--txt);background:rgba(0,229,255,.07)}
+#chatLog,#console{font-size:12px;line-height:1.55}
+#chatLog .m{margin-bottom:8px;padding:8px 10px;border-radius:10px;max-width:88%}
+#chatLog .m.you{background:rgba(124,160,255,.16);margin-left:auto;border:1px solid rgba(124,160,255,.3)}
+#chatLog .m.ia{background:rgba(255,45,149,.13);border:1px solid rgba(255,45,149,.28)}
+#chatLog .m .who{font-size:10px;color:var(--dim);display:block;margin-bottom:3px;letter-spacing:.6px}
+#chatForm{display:flex;gap:6px;margin-top:8px}
+#chatForm input{flex:1;padding:9px;border-radius:9px;border:1px solid var(--line);background:rgba(6,10,20,.7)}
+#console div{border-bottom:1px dotted rgba(140,180,255,.14);padding:3px 0;color:var(--dim);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px}
+#console div.err{color:#ff90a6}
+#console div.ok{color:#8dffc8}
+#varList{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.varChip{border:1px solid var(--line);border-radius:20px;padding:4px 10px;font-size:11px;background:rgba(255,255,255,.05)}
+.varChip b{color:var(--neon)}
+
+/* ---------- estado de la IA y gestor de claves ---------- */
+#aiStatus{font-size:11.5px;color:var(--dim);padding:7px 10px;margin-bottom:8px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.04);line-height:1.55}
+#aiStatus b{color:var(--txt)}
+#aiStatus .okk{color:var(--ok)}
+#aiStatus .no{color:var(--warn)}
+.keyLink{color:var(--neon);text-decoration:none}
+.keyLink:hover{text-decoration:underline}
+.keyCard{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:rgba(255,255,255,.035);margin-bottom:10px}
+.keyCard h4{margin:0 0 6px;font-size:13px}
+.keyCard p{margin:0;font-size:12px;color:var(--dim);line-height:1.6}
+.keyCard label.f{display:block;font-size:10.5px;color:var(--dim);letter-spacing:.6px;margin:8px 0 4px;text-transform:uppercase}
+.keyGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.keyCard input[type=text],.keyCard input[type=password],.keyCard select{width:100%;padding:8px 10px;border-radius:9px;border:1px solid var(--line);background:rgba(6,10,20,.75)}
+.keyRow{display:flex;gap:6px}
+.keyRow input{flex:1}
+.keyCard .chk{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;color:var(--dim);line-height:1.5;margin-top:10px;cursor:pointer}
+.keyCard .chk input{margin-top:2px}
+.keyActs{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+#keyMsg{margin-top:8px;font-size:12px;line-height:1.55;min-height:18px;word-break:break-word}
+#keyMsg.ok{color:#8dffc8}
+#keyMsg.err{color:#ff90a6}
+#keyMsg.wait{color:var(--dim)}
+.keyItem{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:10px;padding:7px 10px;margin-bottom:6px;font-size:12px;background:rgba(255,255,255,.03)}
+.keyItem code{background:rgba(0,229,255,.1);border:1px solid rgba(0,229,255,.22);padding:1px 6px;border-radius:6px;font-size:11px}
+.keyItem .sp{flex:1}
+.keyItem .x{cursor:pointer;opacity:.5}
+.keyItem .x:hover{opacity:1;color:#ff7a90}
+
+/* ---------- bloques ---------- */
+.stack{display:flex;flex-direction:column;align-items:flex-start;min-height:6px}
+.script{position:absolute}
+.blk{
+  position:relative;border-radius:9px;padding:0;margin-bottom:-2px;color:#fff;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.35));cursor:grab;user-select:none;min-width:110px;
+}
+.blk .row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 12px;border-radius:9px;
+  background:var(--c);border:1px solid rgba(255,255,255,.22);border-bottom-color:rgba(0,0,0,.25);
+  font-size:12.5px;font-weight:600;letter-spacing:.2px}
+.blk .row:after{content:"";position:absolute;left:16px;width:22px;height:6px;border-radius:0 0 6px 6px;background:var(--c);
+  border:1px solid rgba(0,0,0,.18);border-top:0;pointer-events:none}
+.blk>.row:after{bottom:-6px}
+.blk.hat>.row{border-radius:16px 16px 9px 9px;padding-top:14px;background:linear-gradient(180deg,rgba(255,255,255,.16),transparent),var(--c)}
+.blk.cap>.row:after{display:none}
+.blk.ia>.row{box-shadow:0 0 18px rgba(255,45,149,.55),0 0 0 1px rgba(255,255,255,.25) inset;
+  background:linear-gradient(120deg,var(--c),#7c5cff 130%)}
+.blk.ia>.row:before{content:"";position:absolute;inset:-2px;border-radius:11px;
+  background:linear-gradient(120deg,rgba(255,45,149,.55),rgba(0,229,255,.45));z-index:-1;filter:blur(6px)}
+.mouth{min-height:26px;margin-left:16px;border-left:14px solid var(--c);border-radius:0 0 0 8px;
+  padding:3px 0 3px 0;background:rgba(0,0,0,.16)}
+.mouth .stack{min-height:20px}
+.blk .foot{height:12px;border-radius:0 0 9px 9px;background:var(--c);border:1px solid rgba(255,255,255,.18);border-top:0;position:relative;width:100%}
+.blk .foot:after{content:"";position:absolute;left:16px;bottom:-6px;width:22px;height:6px;border-radius:0 0 6px 6px;background:var(--c)}
+.blk input,.blk select{
+  background:rgba(255,255,255,.94);color:#0d1526;border:0;border-radius:12px;padding:3px 8px;font-size:12px;font-weight:600;
+  min-width:34px;max-width:230px;outline:none;box-shadow:0 1px 0 rgba(0,0,0,.25) inset;cursor:text
+}
+.blk select{cursor:pointer;padding:3px 4px}
+.blk input.num{text-align:center;border-radius:12px}
+.blk input.cond{background:rgba(255,255,255,.9);border-radius:6px;min-width:110px;font-family:ui-monospace,Menlo,Consolas,monospace}
+.blk input[type=color]{padding:0;width:30px;height:22px;border-radius:6px;cursor:pointer}
+.blk .lbl{opacity:.97}
+.blk.drop{outline:2px dashed rgba(255,255,255,.7)}
+#dragLayer{position:fixed;left:0;top:0;z-index:500;pointer-events:none;display:none;transform-origin:0 0}
+#dragLayer .blk{filter:drop-shadow(0 12px 22px rgba(0,0,0,.6))}
+.ghostSnap{position:fixed;height:5px;border-radius:4px;background:#fff;box-shadow:0 0 14px #fff;z-index:499;pointer-events:none;display:none}
+#palette .blk{cursor:grab;margin-bottom:9px}
+#palette .blk .row{font-size:11.8px;padding:7px 10px}
+#palette .blk input,#palette .blk select{font-size:11.5px;padding:2px 6px}
+#palette .blk .foot,#palette .mouth{display:none}
+
+/* ---------- modal ---------- */
+.modal{position:fixed;inset:0;background:rgba(4,7,16,.72);backdrop-filter:blur(5px);display:none;place-items:center;z-index:600;padding:24px}
+.modal.on{display:grid}
+.modal .box{max-width:820px;width:100%;max-height:84vh;overflow:auto;background:linear-gradient(180deg,#101a33,#0a1122);
+  border:1px solid var(--line);border-radius:18px;padding:24px 26px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+.modal h2{margin:0 0 6px;font-size:22px}
+.modal h3{margin:20px 0 6px;font-size:14px;color:var(--neon);letter-spacing:.6px;text-transform:uppercase}
+.modal p,.modal li{color:#c6d4f0;font-size:13px;line-height:1.7}
+.modal code{background:rgba(0,229,255,.13);border:1px solid rgba(0,229,255,.25);padding:1px 6px;border-radius:6px;font-size:12px}
+.modal .close{float:right}
+@media(max-width:1250px){aside#side{width:420px;min-width:420px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><span class="logo">◆</span><b>CeceCratch</b> <small>el Scratch del futuro · 2D + 3D + IA</small></div>
+  <div class="modes" id="modes">
+    <button data-mode="2d" class="on">2D</button>
+    <button data-mode="3d">3D</button>
+  </div>
+  <div class="spacer"></div>
+  <button id="btnRun" class="go">🏁 Ejecutar</button>
+  <button id="btnStop" class="stop">⏹ Parar</button>
+  <button id="btnKeys">🔑 Claves API</button>
+  <button id="btnSave">💾 Guardar</button>
+  <label class="btn" for="fileProject">📂 Abrir</label>
+  <input id="fileProject" type="file" accept=".json,.cece" hidden>
+  <button id="btnHelp">❓ Ayuda</button>
+</header>
+
+<main>
+  <aside id="palette">
+    <div id="cats"></div>
+    <div id="blocks"></div>
+  </aside>
+
+  <section id="editor">
+    <div id="scriptsWrap">
+      <div id="scriptsInner"></div>
+      <div class="hintEmpty" id="hintEmpty">Arrastra bloques desde la izquierda 👈<br>Haz clic en una pila para ejecutarla</div>
+    </div>
+    <div class="editorBar">
+      <button class="mini" id="btnClean">🧹 Ordenar</button>
+      <button class="mini" id="btnDupScript">⧉ Duplicar objeto</button>
+      <button class="mini" id="btnClear">🗑 Vaciar programa</button>
+    </div>
+  </section>
+
+  <aside id="side">
+    <div id="stageBox">
+      <div class="ratio"></div>
+      <canvas id="c2d"></canvas>
+      <canvas id="c3d" style="display:none"></canvas>
+      <video id="vid" playsinline></video>
+      <div id="overlay"></div>
+      <div id="stageTools">
+        <span class="pill" id="pillMode">modo 2D</span>
+        <span class="pill" id="pillFps">-- fps</span>
+      </div>
+      <div id="askBar">
+        <input id="askInput" placeholder="Escribe tu respuesta y pulsa Enter...">
+        <button class="btn" id="askOk">✔</button>
+      </div>
+    </div>
+
+    <div id="spriteBar">
+      <div class="head">
+        <span>OBJETOS</span>
+        <span class="spacer" style="flex:1"></span>
+        <button class="mini" id="btnAddSprite">➕ Nuevo objeto</button>
+      </div>
+      <div id="spriteList"></div>
+    </div>
+
+    <div id="bottom">
+      <div class="tabs" id="tabs">
+        <button data-p="pArchivos" class="on">📁 Archivos</button>
+        <button data-p="pChat">✦ Chat IA</button>
+        <button data-p="pKeys">🔑 Claves</button>
+        <button data-p="pVars">📊 Variables</button>
+        <button data-p="pLog">🖥 Consola</button>
+      </div>
+      <div class="panel on" id="pArchivos">
+        <div class="dropzone" id="drop">
+          ⬆ Sube o arrastra aquí <b>imágenes</b>, <b>modelos .obj</b>, <b>sonidos</b>, <b>vídeos</b> o un <b>.zip</b> con todo dentro
+          <input id="fileAssets" type="file" multiple hidden
+                 accept="image/*,audio/*,video/*,.obj,.zip,.mtl,.txt,.json">
+        </div>
+        <div id="assetGrid"></div>
+      </div>
+      <div class="panel" id="pChat">
+        <div id="aiStatus"></div>
+        <div id="chatLog"></div>
+        <form id="chatForm" autocomplete="off">
+          <input id="chatInput" placeholder="Habla con la IA del proyecto...">
+          <button class="btn" type="button" id="btnMic" title="Hablar por micrófono">🎤</button>
+          <button class="btn go" type="submit">Enviar</button>
+        </form>
+      </div>
+      <div class="panel" id="pKeys">
+        <div class="keyCard">
+          <h4>🔑 Poner una clave API</h4>
+          <p>Para <b>Google AI Studio (Gemini)</b> consigue una clave gratis en
+             <a class="keyLink" id="keyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>
+             y pégala aquí.</p>
+
+          <div class="keyGrid">
+            <div>
+              <label class="f" for="keyProv">Compañía</label>
+              <select id="keyProv"></select>
+            </div>
+            <div>
+              <label class="f" for="keyModel">Modelo (opcional)</label>
+              <input id="keyModel" type="text" list="keyModels" autocomplete="off" spellcheck="false" placeholder="auto">
+              <datalist id="keyModels"></datalist>
+            </div>
+          </div>
+
+          <label class="f" for="keyVal">Clave API</label>
+          <div class="keyRow">
+            <input id="keyVal" type="password" autocomplete="off" spellcheck="false" placeholder="AIza…">
+            <button class="mini" type="button" id="keyEye" title="Mostrar u ocultar">👁</button>
+          </div>
+
+          <label class="chk"><input type="checkbox" id="keyRemember">
+            <span>Recordar en este navegador (solo aquí; nunca va en el proyecto ni se envía a nadie salvo a la compañía elegida). No lo actives en un ordenador compartido.</span></label>
+
+          <div class="keyActs">
+            <button class="btn" type="button" id="keyTest">🧪 Probar clave</button>
+            <button class="btn go" type="button" id="keySave">💾 Guardar y usar</button>
+          </div>
+          <div id="keyMsg"></div>
+        </div>
+        <div id="keyList"></div>
+      </div>
+      <div class="panel" id="pVars">
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <input id="newVarName" placeholder="nombre de la variable" style="flex:1;padding:8px;border-radius:9px;border:1px solid var(--line);background:rgba(6,10,20,.7)">
+          <button class="mini" id="btnAddVar">➕ Crear variable</button>
+        </div>
+        <div id="varList"></div>
+        <p style="color:var(--dim);font-size:12px;line-height:1.7">
+          En los campos numéricos y de condición puedes escribir fórmulas: <code>x + 10</code>,
+          <code>azar(1,10)</code>, <code>tecla("espacio")</code>, <code>tocando("Objeto2")</code>.<br>
+          En los campos de texto usa <code>${variable}</code> para insertar su valor.
+        </p>
+      </div>
+      <div class="panel" id="pLog"><div id="console"></div></div>
+    </div>
+  </aside>
+</main>
+
+<div id="dragLayer"></div>
+<div class="ghostSnap" id="snapMark"></div>
+
+<div class="modal" id="help">
+  <div class="box">
+    <button class="btn close" id="helpClose">✕ Cerrar</button>
+    <h2>◆ CeceCratch</h2>
+    <p>Un Scratch del futuro: los mismos bloques de siempre, pero con <b>escenario 2D y 3D</b>, carga de
+       <b>imágenes, modelos .obj, sonidos, vídeos y .zip</b>, y <b>4 bloques especiales de IA</b>.</p>
+
+    <h3>Los 4 bloques especiales ✦</h3>
+    <ul>
+      <li><b>compañía de IA</b> — escribes la compañía que creó la IA (Google AI Studio, Anthropic, OpenAI, Mistral, xAI, DeepSeek, Meta, Groq, Local…) y opcionalmente el modelo.</li>
+      <li><b>clave API</b> — escribes la clave de esa compañía. <i>Nunca se guarda en el archivo del proyecto.</i></li>
+      <li><b>modelo 3D</b> — escribes el nombre del modelo <code>.obj</code> que has cargado, y el objeto pasa a usarlo.</li>
+      <li><b>chat</b> — eliges cómo le hablas: <b>texto</b>, <b>micrófono</b>, <b>altavoz</b>, <b>micrófono y altavoz</b>… La respuesta queda en la variable <code>respuestaIA</code>.</li>
+    </ul>
+
+    <h3>Google AI Studio (Gemini)</h3>
+    <ol>
+      <li>Consigue una clave gratis en <a class="keyLink" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">aistudio.google.com/apikey</a>.</li>
+      <li>Abre <b>🔑 Claves API</b>, elige <i>Google AI Studio</i>, pégala y pulsa <b>🧪 Probar clave</b>: te enseña los modelos que tu clave puede usar.</li>
+      <li>Pulsa <b>💾 Guardar y usar</b>. Ya puedes hablar con Gemini desde el panel <b>✦ Chat IA</b> o con el bloque <code>✦ chat</code>.</li>
+    </ol>
+    <p>Otra opción: usa los bloques <code>✦ compañía de IA [Google AI Studio]</code> + <code>✦ clave API [tu clave]</code> dentro del programa.
+       Con modelo <code>auto</code> se usa <code>gemini-flash-latest</code>, el alias oficial que apunta al Flash más reciente.</p>
+
+    <h3>Cómo se programa</h3>
+    <ul>
+      <li>Arrastra bloques de la paleta al área central. Se enganchan solos.</li>
+      <li>Haz <b>clic</b> sobre una pila para ejecutarla; <b>🏁 Ejecutar</b> lanza todos los sombreros «al hacer clic en 🏁».</li>
+      <li>Arrastra un bloque de vuelta a la paleta para borrarlo. Clic derecho: duplicar / borrar.</li>
+    </ul>
+
+    <h3>Fórmulas</h3>
+    <p>Campos numéricos y condiciones aceptan expresiones:
+      <code>+ - * / % ^</code>, <code>&lt; &gt; = != &lt;= &gt;=</code>, <code>y</code>, <code>o</code>, <code>no</code>.<br>
+      Funciones: <code>azar(a,b)</code> <code>abs()</code> <code>redondear()</code> <code>raiz()</code> <code>sen()</code>
+      <code>cos()</code> <code>largo(t)</code> <code>unir(a,b)</code> <code>letra(n,t)</code> <code>contiene(a,b)</code>
+      <code>tecla("espacio")</code> <code>tocando("Objeto2")</code> <code>distancia("Objeto2")</code>.<br>
+      Valores: <code>x y z dir tam mousex mousey cronometro respuesta respuestaIA tiempo pi</code>.</p>
+
+    <h3>Archivos</h3>
+    <p>Imágenes → disfraces · <code>.obj</code> → modelos 3D · sonidos → bloques de sonido · vídeos → bloque de vídeo ·
+       <code>.zip</code> → se descomprime en el navegador y cada archivo entra en su sitio.</p>
+
+    <h3>Nota sobre la IA</h3>
+    <p>Las llamadas salen directamente desde tu navegador a la compañía elegida. Si un proveedor bloquea CORS, usa un proxy propio o
+       deja la clave vacía: el bloque <b>chat</b> funciona igual con un cerebro local de demostración.</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CeceCratch — motor
+   1. utilidades y estado
+   ============================================================ */
+const $  = (s,r=document)=>r.querySelector(s);
+const $$ = (s,r=document)=>Array.from(r.querySelectorAll(s));
+const uid = (p='id')=>p+Math.random().toString(36).slice(2,9);
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const rad=d=>d*Math.PI/180;
+const NEON=['#00e5ff','#ff2d95','#7c5cff','#38e08d','#ffb020','#ff6680','#5cb1d6','#c084fc'];
+
+const P = {                       // proyecto
+  mode:'2d',
+  sprites:[], assets:[], vars:{},
+  stage:{ color:'#0b1020', image:null, grid:true, bg3d:'#070b16' },
+  cam:{ x:0, y:2.6, z:7, tx:0, ty:0, tz:0 },
+  light:{ x:0.6, y:1.0, z:0.8 },
+  ai:{ company:'', model:'auto', key:'', keyFor:'' },   // valores globales por defecto
+  current:0
+};
+const RUN = { token:0, running:false, timer:0, answer:'', asking:null, clones:[], monitors:{} };
+const KEYS = Object.create(null);
+const MOUSE = { x:0, y:0, down:false };
+
+function log(msg,cls=''){
+  const c=$('#console'); if(!c) return;
+  const d=document.createElement('div'); if(cls) d.className=cls;
+  d.textContent='['+new Date().toLocaleTimeString()+'] '+msg;
+  c.appendChild(d); c.scrollTop=c.scrollHeight;
+  while(c.children.length>400) c.removeChild(c.firstChild);
+}
+function currentSprite(){ return P.sprites[P.current] || P.sprites[0]; }
+function spriteByName(n){ return P.sprites.find(s=>s.name===n) || RUN.clones.find(s=>s.name===n); }
+function allActors(){ return P.sprites.concat(RUN.clones); }
+
+/* ---------- 2. objetos (sprites) ---------- */
+function newSprite(name){
+  return {
+    id:uid('s'), name:name||('Objeto'+(P.sprites.length+1)),
+    x:0,y:0,z:0, dir:90, rx:0,ry:0,rz:0, sx:1,sy:1,sz:1,
+    size:100, visible:true, ghost:0,
+    color:NEON[P.sprites.length%NEON.length],
+    costume:null, model3d:null, shape3d:'cubo',
+    say:'', sayKind:'say',
+    pen:{down:false,color:'#00e5ff',size:3},
+    ai:{company:'',model:'auto',key:'',keyFor:''},
+    scripts:[]
+  };
+}
+function addSprite(){
+  const s=newSprite(); P.sprites.push(s); P.current=P.sprites.length-1;
+  renderSprites(); renderScripts(); saveLocal();
+  log('Nuevo objeto: '+s.name,'ok');
+}
+function delSprite(i){
+  if(P.sprites.length<=1){ log('Debe quedar al menos un objeto.','err'); return; }
+  P.sprites.splice(i,1); P.current=clamp(P.current,0,P.sprites.length-1);
+  renderSprites(); renderScripts(); saveLocal();
+}
+function renderSprites(){
+  const box=$('#spriteList'); box.innerHTML='';
+  P.sprites.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='sprite'+(i===P.current?' on':'');
+    const a=s.costume?P.assets.find(a=>a.id===s.costume):null;
+    d.innerHTML='<div class="th">'+(a&&a.el?'<img src="'+a.url+'">':
+        '<span style="font-size:22px;color:'+s.color+'">'+(P.mode==='3d'?'🧊':'▲')+'</span>')+
+      '</div><div class="nm">'+esc(s.name)+'</div><span class="x" title="Borrar">✕</span>';
+    d.onclick=e=>{
+      if(e.target.classList.contains('x')){ delSprite(i); return; }
+      P.current=i; renderSprites(); renderScripts();
+    };
+    d.ondblclick=()=>{
+      const n=prompt('Nombre del objeto:',s.name); if(n){ s.name=n.trim()||s.name; renderSprites(); saveLocal(); }
+    };
+    box.appendChild(d);
+  });
+  updateAiStatus();
+}
+function esc(t){ return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ---------- 3. archivos / recursos ---------- */
+const IMG_EXT=['png','jpg','jpeg','gif','webp','bmp','svg','avif'];
+const SND_EXT=['mp3','wav','ogg','m4a','aac','flac','opus'];
+const VID_EXT=['mp4','webm','ogv','mov','mkv'];
+
+function kindOf(ext){
+  if(IMG_EXT.includes(ext)) return 'imagen';
+  if(SND_EXT.includes(ext)) return 'sonido';
+  if(VID_EXT.includes(ext)) return 'video';
+  if(ext==='obj') return 'modelo';
+  return 'otro';
+}
+const KIND_ICON={imagen:'🖼',sonido:'🔊',video:'🎬',modelo:'🧊',otro:'📄'};
+
+async function addFiles(list){
+  for(const f of list){
+    const ext=(f.name.split('.').pop()||'').toLowerCase();
+    if(ext==='zip'){
+      log('Descomprimiendo '+f.name+'…');
+      try{
+        const files=await unzip(f);
+        log('ZIP: '+files.length+' archivo(s) encontrados','ok');
+        await addFiles(files);
+      }catch(err){ log('No se pudo leer el ZIP: '+err.message,'err'); }
+      continue;
+    }
+    await addAsset(f,ext);
+  }
+  renderAssets(); renderScripts(); saveLocal();
+}
+
+async function addAsset(file,ext){
+  const kind=kindOf(ext);
+  const url=URL.createObjectURL(file);
+  const a={ id:uid('a'), name:file.name, kind, ext, url, blob:file, el:null, mesh:null, tex:null };
+  try{
+    if(kind==='imagen'){
+      a.el=await loadImage(url);
+    }else if(kind==='sonido'){
+      a.el=new Audio(url); a.el.preload='auto';
+    }else if(kind==='video'){
+      a.el=document.createElement('video'); a.el.src=url; a.el.preload='metadata';
+    }else if(kind==='modelo'){
+      a.mesh=parseOBJ(await file.text());
+      log('Modelo 3D «'+a.name+'»: '+(a.mesh.count/3|0)+' triángulos','ok');
+    }
+  }catch(err){ log('Error cargando '+file.name+': '+err.message,'err'); }
+  P.assets.push(a);
+  log('Cargado '+KIND_ICON[kind]+' '+file.name+' ('+kind+')');
+  return a;
+}
+function loadImage(url){
+  return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=()=>rej(new Error('imagen inválida')); i.src=url; });
+}
+function assetsOf(kind){ return P.assets.filter(a=>a.kind===kind); }
+function assetByName(n){
+  if(!n) return null;
+  n=String(n).trim().toLowerCase();
+  return P.assets.find(a=>a.name.toLowerCase()===n) ||
+         P.assets.find(a=>a.name.toLowerCase().replace(/\.[^.]+$/,'')===n) ||
+         P.assets.find(a=>a.name.toLowerCase().includes(n)) || null;
+}
+
+function renderAssets(){
+  const g=$('#assetGrid'); g.innerHTML='';
+  if(!P.assets.length){ g.innerHTML='<p style="color:var(--dim);font-size:12px">Todavía no hay archivos. Sube imágenes, .obj, sonidos, vídeos o un .zip.</p>'; return; }
+  P.assets.forEach(a=>{
+    const d=document.createElement('div'); d.className='asset';
+    let th = a.kind==='imagen' ? '<img src="'+a.url+'">' : KIND_ICON[a.kind];
+    d.innerHTML='<div class="th">'+th+'</div><div class="nm" title="'+esc(a.name)+'">'+esc(a.name)+'</div>';
+    const acts=document.createElement('div'); acts.className='acts';
+    const mk=(t,tt,fn)=>{ const b=document.createElement('button'); b.textContent=t; b.title=tt; b.onclick=fn; acts.appendChild(b); };
+    if(a.kind==='imagen') mk('👕','Usar como disfraz',()=>{ currentSprite().costume=a.id; renderSprites(); saveLocal(); });
+    if(a.kind==='imagen') mk('🌄','Usar como fondo',()=>{ P.stage.image=a.id; saveLocal(); });
+    if(a.kind==='modelo') mk('🧊','Usar como modelo 3D',()=>{ currentSprite().model3d=a.id; currentSprite().shape3d='modelo'; setMode('3d'); saveLocal(); });
+    if(a.kind==='sonido') mk('▶','Escuchar',()=>{ const s=new Audio(a.url); s.play(); });
+    if(a.kind==='video') mk('▶','Ver en el escenario',()=>playVideo(a));
+    mk('✕','Quitar',()=>{ P.assets=P.assets.filter(x=>x!==a); renderAssets(); renderScripts(); saveLocal(); });
+    d.appendChild(acts); g.appendChild(d);
+  });
+}
+
+/* ---------- ZIP (sin librerías: DecompressionStream) ---------- */
+async function inflateRaw(u8){
+  if(typeof DecompressionStream==='undefined') throw new Error('tu navegador no soporta descompresión deflate');
+  const st=new Blob([u8]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(st).arrayBuffer());
+}
+async function unzip(file){
+  const buf=await file.arrayBuffer(), dv=new DataView(buf), u8=new Uint8Array(buf);
+  let eocd=-1;
+  for(let i=buf.byteLength-22;i>=0 && i>buf.byteLength-66000;i--){
+    if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; }
+  }
+  if(eocd<0) throw new Error('no es un ZIP válido');
+  const n=dv.getUint16(eocd+10,true);
+  let off=dv.getUint32(eocd+16,true);
+  const out=[], dec=new TextDecoder();
+  for(let i=0;i<n;i++){
+    if(dv.getUint32(off,true)!==0x02014b50) break;
+    const method=dv.getUint16(off+10,true);
+    const csize=dv.getUint32(off+20,true);
+    const nl=dv.getUint16(off+28,true), el=dv.getUint16(off+30,true), cl=dv.getUint16(off+32,true);
+    const lho=dv.getUint32(off+42,true);
+    const name=dec.decode(u8.subarray(off+46,off+46+nl));
+    off+=46+nl+el+cl;
+    if(name.endsWith('/')||name.startsWith('__MACOSX')||name.split('/').pop().startsWith('.')) continue;
+    const lnl=dv.getUint16(lho+26,true), lel=dv.getUint16(lho+28,true);
+    const start=lho+30+lnl+lel;
+    let data=u8.slice(start,start+csize);
+    if(method===8) data=await inflateRaw(data);
+    else if(method!==0){ log('Compresión no soportada en «'+name+'»','err'); continue; }
+    out.push(new File([data], name.split('/').pop(), {type:''}));
+  }
+  return out;
+}
+
+/* ---------- OBJ ---------- */
+function parseOBJ(txt){
+  const V=[],VT=[],VN=[],pos=[],nor=[],uv=[];
+  const lines=txt.split(/\r?\n/);
+  for(const line of lines){
+    const t=line.trim(); if(!t||t[0]==='#') continue;
+    const p=t.split(/\s+/), k=p[0];
+    if(k==='v') V.push([+p[1],+p[2],+p[3]]);
+    else if(k==='vt') VT.push([+p[1],1-(+p[2]||0)]);
+    else if(k==='vn') VN.push([+p[1],+p[2],+p[3]]);
+    else if(k==='f'){
+      const idx=p.slice(1).map(s=>{
+        const a=s.split('/');
+        const vi=+a[0]; const ti=a[1]?+a[1]:0; const ni=a[2]?+a[2]:0;
+        return [vi<0?V.length+vi:vi-1, ti<0?VT.length+ti:ti-1, ni<0?VN.length+ni:ni-1];
+      });
+      for(let i=1;i<idx.length-1;i++){
+        const tri=[idx[0],idx[i],idx[i+1]];
+        const vs=tri.map(t2=>V[t2[0]]||[0,0,0]);
+        let nrm=null;
+        if(!(VN.length&&tri[0][2]>=0)) nrm=faceNormal(vs[0],vs[1],vs[2]);
+        tri.forEach((t2,j)=>{
+          const v=V[t2[0]]||[0,0,0]; pos.push(v[0],v[1],v[2]);
+          const nn=(t2[2]>=0&&VN[t2[2]])?VN[t2[2]]:nrm; nor.push(nn[0],nn[1],nn[2]);
+          const tt=(t2[1]>=0&&VT[t2[1]])?VT[t2[1]]:[0,0]; uv.push(tt[0],tt[1]);
+        });
+      }
+    }
+  }
+  if(!pos.length) throw new Error('el .obj no tiene caras');
+  // centrar y normalizar a ~2 unidades
+  let mn=[1e9,1e9,1e9], mx=[-1e9,-1e9,-1e9];
+  for(let i=0;i<pos.length;i+=3) for(let j=0;j<3;j++){
+    mn[j]=Math.min(mn[j],pos[i+j]); mx[j]=Math.max(mx[j],pos[i+j]);
+  }
+  const c=[(mn[0]+mx[0])/2,(mn[1]+mx[1])/2,(mn[2]+mx[2])/2];
+  const size=Math.max(mx[0]-mn[0],mx[1]-mn[1],mx[2]-mn[2])||1;
+  const k=2/size;
+  for(let i=0;i<pos.length;i+=3) for(let j=0;j<3;j++) pos[i+j]=(pos[i+j]-c[j])*k;
+  return { pos:new Float32Array(pos), nor:new Float32Array(nor), uv:new Float32Array(uv), count:pos.length/3, buf:null };
+}
+function faceNormal(a,b,c){
+  const u=[b[0]-a[0],b[1]-a[1],b[2]-a[2]], v=[c[0]-a[0],c[1]-a[1],c[2]-a[2]];
+  const n=[u[1]*v[2]-u[2]*v[1], u[2]*v[0]-u[0]*v[2], u[0]*v[1]-u[1]*v[0]];
+  const l=Math.hypot(n[0],n[1],n[2])||1; return [n[0]/l,n[1]/l,n[2]/l];
+}
+
+/* ============================================================
+   4. catálogo de bloques
+   ============================================================ */
+const CATS = {
+  eventos   :{n:'Eventos',    c:'#ffbf00'},
+  movimiento:{n:'Movimiento', c:'#4c97ff'},
+  apariencia:{n:'Apariencia', c:'#9966ff'},
+  sonido    :{n:'Sonido',     c:'#cf63cf'},
+  medios    :{n:'Medios',     c:'#ff6680'},
+  control   :{n:'Control',    c:'#ffab19'},
+  sensores  :{n:'Sensores',   c:'#5cb1d6'},
+  operadores:{n:'Operadores', c:'#59c059'},
+  variables :{n:'Variables',  c:'#ff8c1a'},
+  tresd     :{n:'3D',         c:'#00c2a8'},
+  lapiz     :{n:'Lápiz',      c:'#0fbd8c'},
+  ia        :{n:'IA ✦',       c:'#ff2d95'}
+};
+const KEY_OPTS='espacio|arriba|abajo|izquierda|derecha|entrar|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z|0|1|2|3|4|5|6|7|8|9|cualquiera';
+
+const DEFS={};
+function def(t,cat,shape,spec,run){
+  DEFS[t]={t,cat,shape,spec,parts:parseSpec(spec),run};
+}
+function parseSpec(spec){
+  const parts=[]; const re=/%(\w+)(?:\(([^)]*)\))?/g; let m,last=0,fi=0;
+  while((m=re.exec(spec))){
+    if(m.index>last) parts.push({k:'l',t:spec.slice(last,m.index)});
+    parts.push({k:'f',type:m[1],arg:m[2]===undefined?'':m[2],fi:fi++});
+    last=re.lastIndex;
+  }
+  if(last<spec.length) parts.push({k:'l',t:spec.slice(last)});
+  return parts;
+}
+function fieldDefault(p){
+  switch(p.type){
+    case 'd': case 't': return (p.arg||'').split('|')[0]||'';
+    case 'k': return p.arg||'espacio';
+    case 'c': return p.arg||'#00e5ff';
+    case 'var': return Object.keys(P.vars)[0]||'mi variable';
+    case 'asset': return '';
+    case 'spr': return p.arg||'';
+    case 'pw': return '';
+    default: return p.arg||'';
+  }
+}
+
+/* ---------- EVENTOS ---------- */
+def('whenFlag','eventos','hat','al hacer clic en 🏁');
+def('whenKey','eventos','hat','al presionar la tecla %k(espacio)');
+def('whenClick','eventos','hat','al hacer clic en este objeto');
+def('whenReceive','eventos','hat','al recibir %s(mensaje1)');
+def('whenClone','eventos','hat','al comenzar como clon');
+def('broadcast','eventos','stack','enviar %s(mensaje1) a todos', async(b,c)=>{
+  broadcast(S(b,0,c));
+});
+def('broadcastWait','eventos','stack','enviar %s(mensaje1) y esperar', async(b,c)=>{
+  await Promise.all(broadcast(S(b,0,c)));
+});
+
+/* ---------- MOVIMIENTO ---------- */
+def('move','movimiento','stack','mover %n(10) pasos', async(b,c)=>{
+  const s=c.sp, d=N(b,0,c);
+  moveTo(s, s.x+Math.cos(rad(s.dir))*d, s.y+Math.sin(rad(s.dir))*d, s.z);
+});
+def('turnR','movimiento','stack','girar ↻ %n(15) grados', async(b,c)=>{ c.sp.dir+=N(b,0,c); });
+def('turnL','movimiento','stack','girar ↺ %n(15) grados', async(b,c)=>{ c.sp.dir-=N(b,0,c); });
+def('pointDir','movimiento','stack','apuntar en dirección %n(90)', async(b,c)=>{ c.sp.dir=N(b,0,c); });
+def('pointTo','movimiento','stack','apuntar hacia %d(puntero|objeto)  %spr()', async(b,c)=>{
+  const s=c.sp; let tx,ty;
+  if(F(b,0)==='puntero'){ tx=MOUSE.x; ty=MOUSE.y; }
+  else { const o=spriteByName(F(b,1)); if(!o) return; tx=o.x; ty=o.y; }
+  s.dir=Math.atan2(ty-s.y,tx-s.x)*180/Math.PI;
+});
+def('goxy','movimiento','stack','ir a x: %n(0) y: %n(0)', async(b,c)=>{ moveTo(c.sp,N(b,0,c),N(b,1,c),c.sp.z); });
+def('goxyz','movimiento','stack','ir a x: %n(0) y: %n(0) z: %n(0)', async(b,c)=>{ moveTo(c.sp,N(b,0,c),N(b,1,c),N(b,2,c)); });
+def('goRandom','movimiento','stack','ir a una posición al azar', async(b,c)=>{
+  moveTo(c.sp,(Math.random()*440)-220,(Math.random()*320)-160,c.sp.z);
+});
+def('changeX','movimiento','stack','cambiar x por %n(10)', async(b,c)=>{ moveTo(c.sp,c.sp.x+N(b,0,c),c.sp.y,c.sp.z); });
+def('changeY','movimiento','stack','cambiar y por %n(10)', async(b,c)=>{ moveTo(c.sp,c.sp.x,c.sp.y+N(b,0,c),c.sp.z); });
+def('changeZ','movimiento','stack','cambiar z por %n(10)', async(b,c)=>{ moveTo(c.sp,c.sp.x,c.sp.y,c.sp.z+N(b,0,c)); });
+def('setX','movimiento','stack','fijar x a %n(0)', async(b,c)=>{ moveTo(c.sp,N(b,0,c),c.sp.y,c.sp.z); });
+def('setY','movimiento','stack','fijar y a %n(0)', async(b,c)=>{ moveTo(c.sp,c.sp.x,N(b,0,c),c.sp.z); });
+def('setZ','movimiento','stack','fijar z a %n(0)', async(b,c)=>{ moveTo(c.sp,c.sp.x,c.sp.y,N(b,0,c)); });
+def('glide','movimiento','stack','deslizar %n(1) segs a x: %n(0) y: %n(0) z: %n(0)', async(b,c)=>{
+  const s=c.sp, t=Math.max(0,N(b,0,c)), gx=N(b,1,c), gy=N(b,2,c), gz=N(b,3,c);
+  const x0=s.x,y0=s.y,z0=s.z, t0=performance.now(), ms=t*1000;
+  if(ms<16){ moveTo(s,gx,gy,gz); return; }
+  for(;;){ chk(c);
+    const k=clamp((performance.now()-t0)/ms,0,1);
+    moveTo(s, x0+(gx-x0)*k, y0+(gy-y0)*k, z0+(gz-z0)*k);
+    if(k>=1) break; await frameTick();
+  }
+});
+def('bounce','movimiento','stack','si toca un borde, rebotar', async(b,c)=>{
+  const s=c.sp;
+  if(s.x>230||s.x<-230){ s.dir=180-s.dir; s.x=clamp(s.x,-230,230); }
+  if(s.y>170||s.y<-170){ s.dir=-s.dir;    s.y=clamp(s.y,-170,170); }
+});
+def('rot3d','movimiento','stack','rotar 3D  x: %n(0) y: %n(15) z: %n(0)', async(b,c)=>{
+  const s=c.sp; s.rx+=N(b,0,c); s.ry+=N(b,1,c); s.rz+=N(b,2,c);
+});
+def('setRot3d','movimiento','stack','fijar rotación 3D  x: %n(0) y: %n(0) z: %n(0)', async(b,c)=>{
+  const s=c.sp; s.rx=N(b,0,c); s.ry=N(b,1,c); s.rz=N(b,2,c);
+});
+
+/* ---------- APARIENCIA ---------- */
+def('say','apariencia','stack','decir %s(¡Hola!)', async(b,c)=>{ c.sp.say=S(b,0,c); c.sp.sayKind='say'; });
+def('sayFor','apariencia','stack','decir %s(¡Hola!) por %n(2) segundos', async(b,c)=>{
+  c.sp.say=S(b,0,c); c.sp.sayKind='say'; await sleep(N(b,1,c),c); c.sp.say='';
+});
+def('think','apariencia','stack','pensar %s(Mmm...)', async(b,c)=>{ c.sp.say=S(b,0,c); c.sp.sayKind='think'; });
+def('show','apariencia','stack','mostrar', async(b,c)=>{ c.sp.visible=true; });
+def('hide','apariencia','stack','esconder', async(b,c)=>{ c.sp.visible=false; });
+def('setCostume','apariencia','stack','cambiar disfraz a %asset(imagen)', async(b,c)=>{
+  const id=F(b,0); if(id) c.sp.costume=id;
+});
+def('nextCostume','apariencia','stack','siguiente disfraz', async(b,c)=>{
+  const im=assetsOf('imagen'); if(!im.length) return;
+  const i=im.findIndex(a=>a.id===c.sp.costume);
+  c.sp.costume=im[(i+1)%im.length].id;
+});
+def('setSize','apariencia','stack','fijar tamaño a %n(100) por ciento', async(b,c)=>{ c.sp.size=N(b,0,c); });
+def('changeSize','apariencia','stack','cambiar tamaño por %n(10)', async(b,c)=>{ c.sp.size+=N(b,0,c); });
+def('setColor','apariencia','stack','fijar color a %c(#00e5ff)', async(b,c)=>{ c.sp.color=F(b,0); });
+def('setGhost','apariencia','stack','fijar efecto fantasma a %n(0)', async(b,c)=>{ c.sp.ghost=clamp(N(b,0,c),0,100); });
+def('setBg','apariencia','stack','fijar color de fondo a %c(#0b1020)', async(b,c)=>{
+  P.stage.color=F(b,0); P.stage.bg3d=F(b,0);
+});
+
+/* ---------- SONIDO ---------- */
+def('play','sonido','stack','tocar sonido %asset(sonido)', async(b,c)=>{ playSound(F(b,0)); });
+def('playWait','sonido','stack','tocar sonido %asset(sonido) hasta que termine', async(b,c)=>{
+  const au=playSound(F(b,0)); if(!au) return;
+  for(;;){ chk(c); if(au.ended||au.paused) break; await frameTick(); }
+});
+def('stopSounds','sonido','stack','detener todos los sonidos', async()=>{ stopSounds(); });
+def('setVol','sonido','stack','fijar volumen a %n(100) por ciento', async(b,c)=>{ AUDIO.vol=clamp(N(b,0,c),0,100)/100; });
+
+/* ---------- MEDIOS ---------- */
+def('playVideo','medios','stack','reproducir vídeo %asset(video)', async(b,c)=>{
+  const a=P.assets.find(x=>x.id===F(b,0)); if(a) playVideo(a);
+});
+def('playVideoWait','medios','stack','reproducir vídeo %asset(video) hasta que termine', async(b,c)=>{
+  const a=P.assets.find(x=>x.id===F(b,0)); if(!a) return; const v=playVideo(a);
+  for(;;){ chk(c); if(v.ended||v.paused) break; await frameTick(); }
+  stopVideo();
+});
+def('stopVideo','medios','stack','detener vídeo', async()=>{ stopVideo(); });
+def('setStageImg','medios','stack','fijar fondo a la imagen %asset(imagen)', async(b,c)=>{ P.stage.image=F(b,0)||null; });
+def('clearStageImg','medios','stack','quitar imagen de fondo', async()=>{ P.stage.image=null; });
+
+/* ---------- CONTROL ---------- */
+def('wait','control','stack','esperar %n(1) segundos', async(b,c)=>{ await sleep(N(b,0,c),c); });
+def('repeat','control','c','repetir %n(10)', async(b,c)=>{
+  const n=Math.round(N(b,0,c));
+  for(let i=0;i<n;i++){ chk(c); await exec(b.sub[0],c); await frameTick(); }
+});
+def('forever','control','c','por siempre', async(b,c)=>{
+  for(;;){ chk(c); await exec(b.sub[0],c); await frameTick(); }
+});
+def('ifb','control','c','si %b(x > 0) entonces', async(b,c)=>{
+  if(COND(b,0,c)) await exec(b.sub[0],c);
+});
+def('ifelse','control','c2','si %b(x > 0) entonces', async(b,c)=>{
+  if(COND(b,0,c)) await exec(b.sub[0],c); else await exec(b.sub[1],c);
+});
+def('waitUntil','control','stack','esperar hasta que %b(tecla("espacio"))', async(b,c)=>{
+  for(;;){ chk(c); if(COND(b,0,c)) break; await frameTick(); }
+});
+def('repeatUntil','control','c','repetir hasta que %b(x > 200)', async(b,c)=>{
+  for(;;){ chk(c); if(COND(b,0,c)) break; await exec(b.sub[0],c); await frameTick(); }
+});
+def('stopAll','control','cap','detener todo', async()=>{ stopAll(); throw STOP; });
+def('clone','control','stack','crear clon de %d(mí mismo|otro objeto) %spr()', async(b,c)=>{
+  const src = F(b,0)==='mí mismo' ? c.sp : (spriteByName(F(b,1))||c.sp);
+  makeClone(src);
+});
+def('delClone','control','cap','eliminar este clon', async(b,c)=>{
+  if(c.sp.isClone){ c.sp.dead=true; RUN.clones=RUN.clones.filter(x=>x!==c.sp); }
+  throw STOP;
+});
+
+/* ---------- SENSORES ---------- */
+def('ask','sensores','stack','preguntar %s(¿Cómo te llamas?) y esperar', async(b,c)=>{
+  c.sp.say=S(b,0,c); c.sp.sayKind='say';
+  RUN.answer=await askUser(c);
+  P.vars['respuesta']=RUN.answer;
+  c.sp.say='';
+});
+def('resetTimer','sensores','stack','reiniciar cronómetro', async()=>{ RUN.timer=performance.now(); });
+def('logIt','sensores','stack','escribir %s(hola) en la consola', async(b,c)=>{ log('▶ '+S(b,0,c)); });
+
+/* ---------- OPERADORES ---------- */
+def('setVarOp','operadores','stack','fijar %var() a %n(0) %d(+|-|*|/|resto|potencia) %n(0)', async(b,c)=>{
+  const a=N(b,1,c), op=F(b,2), d=N(b,3,c); let r=0;
+  if(op==='+')r=a+d; else if(op==='-')r=a-d; else if(op==='*')r=a*d;
+  else if(op==='/')r=d?a/d:0; else if(op==='resto')r=d?a%d:0; else r=Math.pow(a,d);
+  setVar(F(b,0),r);
+});
+def('setVarRnd','operadores','stack','fijar %var() a número al azar entre %n(1) y %n(10)', async(b,c)=>{
+  const a=N(b,1,c), d=N(b,2,c);
+  setVar(F(b,0), Math.floor(Math.random()*(d-a+1))+a);
+});
+def('setVarJoin','operadores','stack','fijar %var() a unir %s(hola ) y %s(mundo)', async(b,c)=>{
+  setVar(F(b,0), S(b,1,c)+S(b,2,c));
+});
+def('setVarMath','operadores','stack','fijar %var() a %d(abs|raíz|redondear|seno|coseno|piso|techo) de %n(9)', async(b,c)=>{
+  const v=N(b,2,c), f=F(b,1); const M={'abs':Math.abs,'raíz':Math.sqrt,'redondear':Math.round,
+    'seno':x=>Math.sin(rad(x)),'coseno':x=>Math.cos(rad(x)),'piso':Math.floor,'techo':Math.ceil};
+  setVar(F(b,0), M[f](v));
+});
+
+/* ---------- VARIABLES ---------- */
+def('setVar','variables','stack','fijar %var() a %e(0)', async(b,c)=>{ setVar(F(b,0), EXPR(b,1,c)); });
+def('changeVar','variables','stack','cambiar %var() por %n(1)', async(b,c)=>{
+  setVar(F(b,0), (parseFloat(P.vars[F(b,0)])||0) + N(b,1,c));
+});
+def('showVar','variables','stack','mostrar variable %var()', async(b,c)=>{ RUN.monitors[F(b,0)]=true; });
+def('hideVar','variables','stack','esconder variable %var()', async(b,c)=>{ delete RUN.monitors[F(b,0)]; });
+
+/* ---------- 3D ---------- */
+def('setMode','tresd','stack','cambiar a modo %d(3D|2D)', async(b,c)=>{ setMode(F(b,0).toLowerCase()); });
+def('shape3d','tresd','stack','usar forma 3D %d(cubo|esfera|plano|modelo)', async(b,c)=>{ c.sp.shape3d=F(b,0); });
+def('scale3d','tresd','stack','fijar escala 3D x: %n(1) y: %n(1) z: %n(1)', async(b,c)=>{
+  const s=c.sp; s.sx=N(b,0,c); s.sy=N(b,1,c); s.sz=N(b,2,c);
+});
+def('camTo','tresd','stack','mover cámara a x: %n(0) y: %n(2.6) z: %n(7)', async(b,c)=>{
+  P.cam.x=N(b,0,c); P.cam.y=N(b,1,c); P.cam.z=N(b,2,c);
+});
+def('camLook','tresd','stack','cámara mira a %d(centro|este objeto|objeto) %spr()', async(b,c)=>{
+  const k=F(b,0);
+  if(k==='centro'){ P.cam.tx=P.cam.ty=P.cam.tz=0; return; }
+  const o = k==='este objeto' ? c.sp : (spriteByName(F(b,1))||c.sp);
+  P.cam.tx=o.x/W3; P.cam.ty=o.y/W3; P.cam.tz=o.z/W3;
+});
+def('camOrbit','tresd','stack','orbitar cámara %n(2) grados', async(b,c)=>{
+  const a=rad(N(b,0,c)), dx=P.cam.x-P.cam.tx, dz=P.cam.z-P.cam.tz;
+  P.cam.x=P.cam.tx+dx*Math.cos(a)-dz*Math.sin(a);
+  P.cam.z=P.cam.tz+dx*Math.sin(a)+dz*Math.cos(a);
+});
+def('camZoom','tresd','stack','acercar cámara %n(1) unidades', async(b,c)=>{
+  const d=N(b,0,c), v=[P.cam.tx-P.cam.x,P.cam.ty-P.cam.y,P.cam.tz-P.cam.z];
+  const l=Math.hypot(v[0],v[1],v[2])||1;
+  if(l-d>0.6){ P.cam.x+=v[0]/l*d; P.cam.y+=v[1]/l*d; P.cam.z+=v[2]/l*d; }
+});
+def('light3d','tresd','stack','fijar luz a x: %n(0.6) y: %n(1) z: %n(0.8)', async(b,c)=>{
+  P.light.x=N(b,0,c); P.light.y=N(b,1,c); P.light.z=N(b,2,c);
+});
+def('grid3d','tresd','stack','mostrar rejilla %d(sí|no)', async(b,c)=>{ P.stage.grid = F(b,0)==='sí'; });
+
+/* ---------- LÁPIZ ---------- */
+def('penDown','lapiz','stack','bajar lápiz', async(b,c)=>{ c.sp.pen.down=true; });
+def('penUp','lapiz','stack','subir lápiz', async(b,c)=>{ c.sp.pen.down=false; });
+def('penClear','lapiz','stack','borrar todo lo dibujado', async()=>{ penClear(); });
+def('penColor','lapiz','stack','fijar color de lápiz a %c(#ff2d95)', async(b,c)=>{ c.sp.pen.color=F(b,0); });
+def('penSize','lapiz','stack','fijar grosor de lápiz a %n(3)', async(b,c)=>{ c.sp.pen.size=clamp(N(b,0,c),1,60); });
+def('stamp','lapiz','stack','sellar', async(b,c)=>{ stamp(c.sp); });
+
+/* ---------- IA ✦ (los 4 bloques especiales) ---------- */
+def('aiCompany','ia','stack','✦ compañía de IA %t(Google AI Studio|Anthropic|OpenAI|Mistral|xAI|DeepSeek|Meta|Groq|Local) modelo %t(auto)', async(b,c)=>{
+  const co=S(b,0,c).trim(), mo=S(b,1,c).trim()||'auto';
+  c.sp.ai.company=co; c.sp.ai.model=mo; P.ai.company=co; P.ai.model=mo;
+  log('✦ Compañía de IA: '+co+'  ·  modelo: '+(mo==='auto'?defaultModel(co)+' (auto)':mo),'ok');
+  updateAiStatus();
+});
+def('apiKey','ia','stack','✦ clave API de la compañía %pw()', async(b,c)=>{
+  const k=cleanKey(F(b,0));
+  const co=c.sp.ai.company||P.ai.company||'';
+  const pk=co?provKey(co):'';              // a qué compañía pertenece esta clave
+  c.sp.ai.key=k; c.sp.ai.keyFor=pk; P.ai.key=k; P.ai.keyFor=pk;
+  log('✦ Clave API '+(k?'guardada en memoria ('+maskKey(k)+')':'vacía → se usa la guardada en 🔑 Claves o el cerebro local'),k?'ok':'');
+  updateAiStatus();
+});
+def('model3d','ia','stack','✦ modelo 3D %t()', async(b,c)=>{
+  const nm=S(b,0,c);
+  const a=assetByName(nm);
+  if(!a||a.kind!=='modelo'){ log('✦ No encuentro el modelo 3D «'+nm+'». Súbelo en Archivos.','err'); return; }
+  c.sp.model3d=a.id; c.sp.shape3d='modelo'; setMode('3d');
+  log('✦ '+c.sp.name+' ahora usa el modelo 3D «'+a.name+'»','ok');
+});
+def('chat','ia','stack','✦ chat por %d(texto|micrófono|altavoz|micrófono y altavoz|texto y altavoz) decir %s(Hola, ¿quién eres?)', async(b,c)=>{
+  await doChat(F(b,0), S(b,1,c), c);
+});
+
+/* ============================================================
+   5. paleta, dibujo de bloques y arrastre
+   ============================================================ */
+let CAT='eventos';
+const POS=new Map();          // id de bloque -> {arr, idx}
+
+function renderPalette(){
+  const cats=$('#cats'); cats.innerHTML='';
+  Object.entries(CATS).forEach(([k,v])=>{
+    const d=document.createElement('div');
+    d.className='cat'+(k===CAT?' on':'');
+    d.innerHTML='<span class="dot" style="background:'+v.c+';color:'+v.c+'"></span>'+v.n;
+    d.onclick=()=>{ CAT=k; renderPalette(); };
+    cats.appendChild(d);
+  });
+  const box=$('#blocks'); box.innerHTML='';
+  const h=document.createElement('h4'); h.textContent=CATS[CAT].n; box.appendChild(h);
+  Object.values(DEFS).filter(d=>d.cat===CAT).forEach(d=>{
+    const b=newBlock(d.t);
+    const el=renderBlock(b,null,-1,true);
+    box.appendChild(el);
+  });
+  if(CAT==='variables'||CAT==='operadores'){
+    const p=document.createElement('p');
+    p.style.cssText='color:var(--dim);font-size:11px;line-height:1.6;margin-top:12px';
+    p.innerHTML='Crea variables en la pestaña <b>📊 Variables</b>.<br>Los campos numéricos aceptan fórmulas: <code>x+10</code>, <code>azar(1,6)</code>.';
+    box.appendChild(p);
+  }
+  if(CAT==='ia'){
+    const p=document.createElement('p');
+    p.style.cssText='color:var(--dim);font-size:11px;line-height:1.6;margin-top:12px';
+    p.innerHTML='Los 4 bloques especiales de CeceCratch.<br>La respuesta de la IA se guarda en la variable <b>respuestaIA</b>.<br><br>'+
+      '¿Sin ganas de arrastrar la clave? Pulsa <b>🔑 Claves API</b> arriba y guárdala una vez (Google AI Studio, Anthropic, OpenAI…).';
+    box.appendChild(p);
+  }
+}
+
+function newBlock(t){
+  const d=DEFS[t]; const b={id:uid('b'),t,f:{}};
+  d.parts.forEach(p=>{ if(p.k==='f') b.f[p.fi]=fieldDefault(p); });
+  if(d.shape==='c') b.sub=[[]];
+  if(d.shape==='c2') b.sub=[[],[]];
+  return b;
+}
+function cloneBlock(b){
+  const n={id:uid('b'),t:b.t,f:Object.assign({},b.f)};
+  if(b.sub) n.sub=b.sub.map(arr=>arr.map(cloneBlock));
+  return n;
+}
+function cloneStack(arr){ return arr.map(cloneBlock); }
+
+function fitInput(el){
+  const len=(el.value||'').length;
+  const min=el.classList.contains('cond')?110:(el.classList.contains('num')?24:40);
+  el.style.width=Math.max(min,Math.min(230,len*7.6+18))+'px';
+}
+function dynOptions(b,p){
+  if(p.type==='spr') return P.sprites.map(s=>s.name);
+  if(b.t==='model3d') return assetsOf('modelo').map(a=>a.name);
+  if(b.t==='aiCompany' && p.fi===1) return MODELS_SEEN[provKey(b.f[0])]||[];
+  return [];
+}
+function fieldEl(b,i,p,palette){
+  const type=p.type; let el;
+  if(type==='d'||type==='asset'||type==='var'||type==='k'){
+    el=document.createElement('select');
+    let opts=[];
+    if(type==='d') opts=(p.arg||'').split('|').filter(Boolean).map(o=>[o,o]);
+    else if(type==='k') opts=KEY_OPTS.split('|').map(o=>[o,o]);
+    else if(type==='asset'){
+      opts=assetsOf(p.arg).map(a=>[a.id,a.name]);
+      if(!opts.length) opts=[['','(sube un '+p.arg+')']];
+    }else{
+      opts=Object.keys(P.vars).map(v=>[v,v]);
+      if(!opts.length) opts=[['mi variable','mi variable']];
+    }
+    const cur=b.f[i];
+    if(cur!==undefined && cur!=='' && !opts.some(o=>o[0]===cur)) opts.unshift([cur,cur]);
+    opts.forEach(([v,t])=>{ const o=document.createElement('option'); o.value=v; o.textContent=t; el.appendChild(o); });
+    el.value=(cur!==undefined&&cur!=='')?cur:opts[0][0];
+    b.f[i]=el.value;
+  }else if(type==='c'){
+    el=document.createElement('input'); el.type='color'; el.value=b.f[i]||'#00e5ff';
+  }else if(type==='pw'){
+    el=document.createElement('input'); el.type='password'; el.value=b.f[i]||'';
+    el.placeholder='pega tu clave'; el.autocomplete='off'; el.spellcheck=false; el.style.width='150px';
+  }else{
+    el=document.createElement('input'); el.type='text'; el.value=b.f[i]===undefined?'':b.f[i];
+    if(type==='n') el.className='num';
+    if(type==='b') el.className='cond';
+    const extra=dynOptions(b,p);
+    const sug=(p.arg||'').split('|').filter(Boolean).concat(extra);
+    if((type==='t'||type==='spr') && sug.length){
+      const dl=document.createElement('datalist'); dl.id=uid('dl');
+      sug.forEach(o=>{ const op=document.createElement('option'); op.value=o; dl.appendChild(op); });
+      el.setAttribute('list',dl.id);
+      el._dl=dl;
+    }
+    fitInput(el);
+  }
+  el.onpointerdown=e=>e.stopPropagation();
+  el.oninput=el.onchange=()=>{ b.f[i]=el.value; if(el.tagName==='INPUT'&&el.type==='text') fitInput(el); if(!palette) saveLocal(); };
+  return el;
+}
+
+function renderBlock(b,arr,idx,palette){
+  const d=DEFS[b.t]; if(!d) return document.createElement('div');
+  const el=document.createElement('div');
+  el.className='blk'+(d.shape==='hat'?' hat':'')+(d.shape==='cap'?' cap':'')+(d.cat==='ia'?' ia':'');
+  el.dataset.id=b.id;
+  el.style.setProperty('--c',CATS[d.cat].c);
+  const row=document.createElement('div'); row.className='row';
+  d.parts.forEach(p=>{
+    if(p.k==='l'){ const s=document.createElement('span'); s.className='lbl'; s.textContent=p.t; row.appendChild(s); }
+    else{ const f=fieldEl(b,p.fi,p,palette); row.appendChild(f); if(f._dl) row.appendChild(f._dl); }
+  });
+  el.appendChild(row);
+  if(d.shape==='c'||d.shape==='c2'){
+    el.appendChild(mouthEl(b.sub[0],palette));
+    if(d.shape==='c2'){
+      const r2=document.createElement('div'); r2.className='row';
+      r2.innerHTML='<span class="lbl">si no</span>'; el.appendChild(r2);
+      el.appendChild(mouthEl(b.sub[1],palette));
+    }
+    const f=document.createElement('div'); f.className='foot'; el.appendChild(f);
+  }
+  if(!palette){
+    POS.set(b.id,{arr,idx,b});
+    el.addEventListener('pointerdown',e=>{
+      if(e.target.closest('input,select,option')) return;
+      e.stopPropagation();
+      blockPointerDown(e,b,arr,idx,false);
+    });
+    el.addEventListener('contextmenu',e=>{ e.preventDefault(); e.stopPropagation(); ctxMenu(e,b,arr,idx); });
+  }else{
+    el.addEventListener('pointerdown',e=>{
+      if(e.target.closest('input,select,option')) return;
+      e.stopPropagation(); blockPointerDown(e,b,null,-1,true);
+    });
+  }
+  return el;
+}
+function mouthEl(subArr,palette){
+  const m=document.createElement('div'); m.className='mouth';
+  m.appendChild(renderStack(subArr,palette));
+  return m;
+}
+function renderStack(arr,palette){
+  const st=document.createElement('div'); st.className='stack'; st._arr=arr;
+  arr.forEach((b,i)=>st.appendChild(renderBlock(b,arr,i,palette)));
+  return st;
+}
+function renderScripts(){
+  const inner=$('#scriptsInner'); inner.innerHTML=''; POS.clear();
+  const sp=currentSprite(); if(!sp) return;
+  sp.scripts.forEach(sc=>{
+    const el=document.createElement('div'); el.className='script';
+    el.style.left=(sc.x||30)+'px'; el.style.top=(sc.y||30)+'px';
+    el._sc=sc;
+    el.appendChild(renderStack(sc.blocks,false));
+    inner.appendChild(el);
+  });
+  $('#hintEmpty').style.display = sp.scripts.length? 'none':'block';
+}
+
+/* ---------- arrastre ---------- */
+let DRAG=null;
+function computeConns(dragBlocks){
+  const conns=[];
+  const firstIsHat = DEFS[dragBlocks[0].t].shape==='hat';
+  if(firstIsHat) return conns;
+  $$('#scriptsInner .blk').forEach(el=>{
+    const info=POS.get(el.dataset.id); if(!info||!info.arr) return;
+    if(DEFS[info.b.t].shape==='cap') return;
+    const r=el.getBoundingClientRect();
+    conns.push({arr:info.arr,idx:info.idx+1,x:r.left,y:r.bottom});
+  });
+  $$('#scriptsInner .mouth > .stack').forEach(st=>{
+    if(!st._arr) return;
+    const r=st.getBoundingClientRect();
+    conns.push({arr:st._arr,idx:0,x:r.left,y:r.top});
+  });
+  $$('#scriptsInner .script').forEach(el=>{
+    const sc=el._sc; if(!sc||!sc.blocks.length) return;
+    if(DEFS[sc.blocks[0].t].shape==='hat') return;
+    const r=el.getBoundingClientRect();
+    conns.push({arr:sc.blocks,idx:0,x:r.left,y:r.top});
+  });
+  return conns;
+}
+function blockPointerDown(e,b,arr,idx,fromPalette){
+  if(e.button===2) return;
+  e.preventDefault();
+  const el=e.currentTarget, r=el.getBoundingClientRect();
+  let blocks;
+  if(fromPalette) blocks=[cloneBlock(b)];
+  else{
+    blocks=arr.splice(idx);
+    // si la pila queda vacía y era un script raíz, se limpia al soltar
+    renderScripts();
+  }
+  DRAG={blocks,dx:e.clientX-r.left,dy:e.clientY-r.top,moved:false,fromPalette,src:{arr,idx},conns:[],snap:null};
+  DRAG.conns=computeConns(blocks);
+  const layer=$('#dragLayer');
+  layer.innerHTML=''; layer.style.display='block';
+  layer.appendChild(renderStack(blocks,true));
+  moveDrag(e.clientX,e.clientY);
+  window.addEventListener('pointermove',onDragMove);
+  window.addEventListener('pointerup',onDragUp,{once:true});
+}
+function moveDrag(cx,cy){
+  const l=$('#dragLayer');
+  l.style.transform='translate('+(cx-DRAG.dx)+'px,'+(cy-DRAG.dy)+'px)';
+}
+function onDragMove(e){
+  if(!DRAG) return;
+  if(Math.abs(e.movementX)+Math.abs(e.movementY)>0) DRAG.moved=true;
+  moveDrag(e.clientX,e.clientY);
+  const px=e.clientX-DRAG.dx, py=e.clientY-DRAG.dy;
+  let best=null,bd=1e9;
+  DRAG.conns.forEach(c=>{
+    const d=Math.hypot(c.x-px,c.y-py);
+    if(d<bd){ bd=d; best=c; }
+  });
+  DRAG.snap = bd<62 ? best : null;
+  const m=$('#snapMark');
+  if(DRAG.snap){ m.style.display='block'; m.style.left=DRAG.snap.x+'px'; m.style.top=(DRAG.snap.y-2)+'px'; m.style.width='90px'; }
+  else m.style.display='none';
+}
+function onDragUp(e){
+  window.removeEventListener('pointermove',onDragMove);
+  $('#snapMark').style.display='none';
+  const layer=$('#dragLayer'); layer.style.display='none'; layer.innerHTML='';
+  if(!DRAG) return;
+  const D=DRAG; DRAG=null;
+  const pal=$('#palette').getBoundingClientRect();
+  const sp=currentSprite();
+
+  if(!D.moved){                                   // clic simple
+    if(D.fromPalette){
+      const w=$('#scriptsWrap');
+      addScript(D.blocks, w.scrollLeft+60+((sp.scripts.length*18)%220), w.scrollTop+50+((sp.scripts.length*46)%320));
+    }else{
+      D.src.arr.splice(D.src.idx,0,...D.blocks);
+      renderScripts(); runStack(D.blocks,sp);
+    }
+    cleanupScripts(); saveLocal(); return;
+  }
+  if(e.clientX<pal.right){                        // soltado sobre la paleta -> borrar
+    if(!D.fromPalette) log('Bloques eliminados');
+    cleanupScripts(); renderScripts(); saveLocal(); return;
+  }
+  if(D.snap){
+    D.snap.arr.splice(D.snap.idx,0,...D.blocks);
+  }else{
+    const ir=$('#scriptsInner').getBoundingClientRect();
+    addScript(D.blocks, e.clientX-D.dx-ir.left, e.clientY-D.dy-ir.top, true);
+  }
+  cleanupScripts(); renderScripts(); saveLocal();
+}
+function addScript(blocks,x,y,noRender){
+  currentSprite().scripts.push({x:Math.max(6,x),y:Math.max(6,y),blocks});
+  if(!noRender) renderScripts();
+}
+function cleanupScripts(){
+  const sp=currentSprite(); if(!sp) return;
+  sp.scripts=sp.scripts.filter(s=>s.blocks.length);
+}
+
+/* ---------- menú contextual ---------- */
+let MENU=null;
+function ctxMenu(e,b,arr,idx){
+  closeMenu();
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;z-index:700;background:#111a30;border:1px solid var(--line);border-radius:10px;padding:5px;'+
+    'box-shadow:0 12px 30px rgba(0,0,0,.6);font-size:12px;min-width:150px';
+  const it=(t,fn)=>{ const d=document.createElement('div');
+    d.textContent=t; d.style.cssText='padding:7px 10px;border-radius:7px;cursor:pointer';
+    d.onmouseenter=()=>d.style.background='rgba(124,160,255,.2)';
+    d.onmouseleave=()=>d.style.background='';
+    d.onclick=()=>{ closeMenu(); fn(); }; m.appendChild(d); };
+  it('▶ Ejecutar esta pila',()=>runStack(arr.slice(idx),currentSprite()));
+  it('⧉ Duplicar',()=>{
+    const cp=cloneStack(arr.slice(idx));
+    const ir=$('#scriptsInner').getBoundingClientRect();
+    addScript(cp, e.clientX-ir.left+20, e.clientY-ir.top+20); saveLocal();
+  });
+  it('🗑 Borrar desde aquí',()=>{ arr.splice(idx); cleanupScripts(); renderScripts(); saveLocal(); });
+  m.style.left=e.clientX+'px'; m.style.top=e.clientY+'px';
+  document.body.appendChild(m); MENU=m;
+  setTimeout(()=>window.addEventListener('pointerdown',closeMenu,{once:true}),0);
+}
+function closeMenu(){ if(MENU){ MENU.remove(); MENU=null; } }
+
+/* ============================================================
+   6. evaluador de fórmulas
+   ============================================================ */
+const CACHE=new Map();
+function tokenize(src){
+  const t=[]; let i=0;
+  const isD=c=>c>='0'&&c<='9';
+  const isI=c=>/[A-Za-zÀ-ÿ_0-9]/.test(c);
+  while(i<src.length){
+    const c=src[i];
+    if(c===' '||c==='\t'||c==='\n'){ i++; continue; }
+    if(isD(c)||(c==='.'&&isD(src[i+1]))){
+      let j=i; while(j<src.length&&(isD(src[j])||src[j]==='.')) j++;
+      t.push({k:'num',v:parseFloat(src.slice(i,j))}); i=j; continue;
+    }
+    if(c==='"'||c==="'"){
+      let j=i+1,s=''; while(j<src.length&&src[j]!==c){ s+=src[j]; j++; }
+      t.push({k:'str',v:s}); i=j+1; continue;
+    }
+    if(/[A-Za-zÀ-ÿ_]/.test(c)){
+      let j=i; while(j<src.length&&isI(src[j])) j++;
+      t.push({k:'id',v:src.slice(i,j)}); i=j; continue;
+    }
+    const two=src.substr(i,2);
+    if(['<=','>=','!=','==','<>','&&','||'].includes(two)){ t.push({k:'op',v:two}); i+=2; continue; }
+    if('+-*/%^()<>=,!'.indexOf(c)>=0){ t.push({k:'op',v:c}); i++; continue; }
+    i++;
+  }
+  return t;
+}
+const toNum=v=>{ if(typeof v==='number') return v; if(typeof v==='boolean') return v?1:0;
+  const n=parseFloat(v); return isNaN(n)?0:n; };
+const toStr=v=>{ if(v===true) return 'verdadero'; if(v===false) return 'falso';
+  if(typeof v==='number') return (Math.round(v*1e6)/1e6)+''; return v===undefined||v===null?'':String(v); };
+const truthy=v=>{ if(typeof v==='boolean') return v; if(typeof v==='number') return v!==0;
+  const s=String(v).trim().toLowerCase(); return !(s===''||s==='0'||s==='falso'||s==='false'||s==='no'); };
+const isNumish=v=>typeof v==='number'||(typeof v==='string'&&v.trim()!==''&&!isNaN(v));
+
+const FUNCS={
+  azar:(a,b)=>{ a=toNum(a); b=toNum(b);
+    return (a%1||b%1)? a+Math.random()*(b-a) : Math.floor(Math.random()*(b-a+1))+a; },
+  abs:a=>Math.abs(toNum(a)), raiz:a=>Math.sqrt(Math.abs(toNum(a))),
+  redondear:a=>Math.round(toNum(a)), piso:a=>Math.floor(toNum(a)), techo:a=>Math.ceil(toNum(a)),
+  sen:a=>Math.sin(rad(toNum(a))), cos:a=>Math.cos(rad(toNum(a))), tan:a=>Math.tan(rad(toNum(a))),
+  atan2:(a,b)=>Math.atan2(toNum(a),toNum(b))*180/Math.PI,
+  log:a=>Math.log(Math.max(1e-9,toNum(a))), exp:a=>Math.exp(toNum(a)),
+  min:(a,b)=>Math.min(toNum(a),toNum(b)), max:(a,b)=>Math.max(toNum(a),toNum(b)),
+  largo:a=>toStr(a).length, unir:(a,b)=>toStr(a)+toStr(b),
+  letra:(n,s)=>toStr(s).charAt(Math.max(0,toNum(n)-1)),
+  contiene:(a,b)=>toStr(a).toLowerCase().includes(toStr(b).toLowerCase()),
+  numero:a=>toNum(a), texto:a=>toStr(a),
+  tecla:function(k){ return keyDown(toStr(k)); },
+  tocando:function(n){ const o=spriteByName(toStr(n)); if(!o||!this.sp) return false;
+    return Math.hypot(o.x-this.sp.x,o.y-this.sp.y) < (o.size+this.sp.size)*0.32; },
+  distancia:function(n){ const o=spriteByName(toStr(n)); if(!o||!this.sp) return 0;
+    return Math.hypot(o.x-this.sp.x,o.y-this.sp.y); },
+  distanciapuntero:function(){ return this.sp?Math.hypot(MOUSE.x-this.sp.x,MOUSE.y-this.sp.y):0; }
+};
+function builtinVar(name,ctx){
+  const sp=ctx&&ctx.sp;
+  switch(name){
+    case 'x': return sp?sp.x:0;  case 'y': return sp?sp.y:0;  case 'z': return sp?sp.z:0;
+    case 'dir': case 'direccion': return sp?sp.dir:0;
+    case 'tam': case 'tamano': return sp?sp.size:100;
+    case 'mousex': return MOUSE.x; case 'mousey': return MOUSE.y;
+    case 'ratonabajo': return MOUSE.down;
+    case 'cronometro': return (performance.now()-RUN.timer)/1000;
+    case 'tiempo': return performance.now()/1000;
+    case 'respuesta': return RUN.answer;
+    case 'pi': return Math.PI;
+    case 'verdadero': return true; case 'falso': return false;
+    case 'ancho': return 480; case 'alto': return 360;
+    case 'objetos': return P.sprites.length;
+    case 'archivos': return P.assets.length;
+  }
+  return undefined;
+}
+function compile(src){
+  if(CACHE.has(src)) return CACHE.get(src);
+  const ts=tokenize(src); let p=0;
+  const peek=()=>ts[p];
+  const isOp=v=>ts[p]&&ts[p].k==='op'&&ts[p].v===v;
+  const isId=v=>ts[p]&&ts[p].k==='id'&&ts[p].v.toLowerCase()===v;
+  function primary(){
+    const t=ts[p];
+    if(!t) return ()=>0;
+    if(t.k==='num'){ p++; return ()=>t.v; }
+    if(t.k==='str'){ p++; return ()=>t.v; }
+    if(t.k==='op'&&t.v==='('){ p++; const e=orE(); if(isOp(')'))p++; return e; }
+    if(t.k==='op'&&t.v==='-'){ p++; const e=unary(); return c=>-toNum(e(c)); }
+    if(t.k==='op'&&t.v==='+'){ p++; return unary(); }
+    if(t.k==='op'&&(t.v==='!')){ p++; const e=unary(); return c=>!truthy(e(c)); }
+    if(t.k==='id'){
+      const name=t.v, low=name.toLowerCase(); p++;
+      if(isOp('(')){
+        p++; const args=[];
+        if(!isOp(')')){ args.push(orE()); while(isOp(',')){ p++; args.push(orE()); } }
+        if(isOp(')')) p++;
+        const f=FUNCS[low];
+        if(!f) return c=>{ const v=lookup(name,c); return v; };
+        return c=>{ try{ return f.apply(c,args.map(a=>a(c))); }catch(e){ return 0; } };
+      }
+      return c=>lookup(name,c);
+    }
+    p++; return ()=>0;
+  }
+  function lookup(name,c){
+    const low=name.toLowerCase();
+    if(Object.prototype.hasOwnProperty.call(P.vars,name)) return P.vars[name];
+    const k=Object.keys(P.vars).find(v=>v.toLowerCase()===low);
+    if(k!==undefined) return P.vars[k];
+    const bv=builtinVar(low,c);
+    if(bv!==undefined) return bv;
+    if(FUNCS[low]) { try{ return FUNCS[low].call(c); }catch(e){ return 0; } }
+    return 0;
+  }
+  function unary(){ return primary(); }
+  function power(){ let l=unary(); while(isOp('^')){ p++; const r=unary(); const a=l; l=c=>Math.pow(toNum(a(c)),toNum(r(c))); } return l; }
+  function mul(){ let l=power();
+    while(isOp('*')||isOp('/')||isOp('%')){ const o=ts[p].v; p++; const r=power(); const a=l;
+      l=c=>{ const A=toNum(a(c)),B=toNum(r(c));
+        return o==='*'?A*B:(o==='/'?(B?A/B:0):(B?A%B:0)); }; }
+    return l; }
+  function add(){ let l=mul();
+    while(isOp('+')||isOp('-')){ const o=ts[p].v; p++; const r=mul(); const a=l;
+      l=c=>{ const A=a(c),B=r(c);
+        if(o==='+'&&(!isNumish(A)||!isNumish(B))&&(typeof A==='string'||typeof B==='string')) return toStr(A)+toStr(B);
+        return o==='+'?toNum(A)+toNum(B):toNum(A)-toNum(B); }; }
+    return l; }
+  function cmp(){ let l=add();
+    while(isOp('<')||isOp('>')||isOp('=')||isOp('==')||isOp('<=')||isOp('>=')||isOp('!=')||isOp('<>')){
+      const o=ts[p].v; p++; const r=add(); const a=l;
+      l=c=>{ const A=a(c),B=r(c);
+        const both=isNumish(A)&&isNumish(B);
+        const X=both?toNum(A):toStr(A).toLowerCase(), Y=both?toNum(B):toStr(B).toLowerCase();
+        switch(o){ case '<':return X<Y; case '>':return X>Y; case '<=':return X<=Y; case '>=':return X>=Y;
+          case '!=': case '<>': return X!==Y; default: return X===Y; } }; }
+    return l; }
+  function notE(){ if(isId('no')){ p++; const e=notE(); return c=>!truthy(e(c)); } return cmp(); }
+  function andE(){ let l=notE();
+    while(isId('y')||isOp('&&')){ p++; const r=notE(); const a=l; l=c=>truthy(a(c))&&truthy(r(c)); }
+    return l; }
+  function orE(){ let l=andE();
+    while(isId('o')||isOp('||')){ p++; const r=andE(); const a=l; l=c=>truthy(a(c))||truthy(r(c)); }
+    return l; }
+  const fn=orE();
+  if(CACHE.size>600) CACHE.clear();
+  CACHE.set(src,fn);
+  return fn;
+}
+function evaluate(src,ctx){
+  if(src===undefined||src===null||src==='') return 0;
+  try{ return compile(String(src))(ctx||{}); }
+  catch(e){ return 0; }
+}
+/* accesos a campos desde los bloques */
+function F(b,i){ return b.f[i]; }
+function N(b,i,c){ return toNum(evaluate(b.f[i],c)); }
+function COND(b,i,c){ return truthy(evaluate(b.f[i],c)); }
+function EXPR(b,i,c){
+  const raw=b.f[i];
+  if(raw===undefined) return '';
+  const s=String(raw).trim();
+  if(s===''||/^[-+]?[\d.]+$/.test(s)) return s===''?'':parseFloat(s);
+  const r=evaluate(s,c);
+  if((r===0||r==='')&&!/[\d()+\-*/^<>=]/.test(s) && !Object.keys(P.vars).some(v=>v.toLowerCase()===s.toLowerCase())) return interp(s,c);
+  return r;
+}
+function S(b,i,c){ return interp(b.f[i]===undefined?'':String(b.f[i]),c); }
+function interp(t,c){
+  return t.replace(/\$\{([^}]*)\}/g,(m,e)=>toStr(evaluate(e,c)));
+}
+
+/* ============================================================
+   7. intérprete
+   ============================================================ */
+const STOP={stop:true};
+let frameWaiters=[];
+function frameTick(){ return new Promise(r=>frameWaiters.push(r)); }
+function flushFrame(){ const w=frameWaiters; frameWaiters=[]; w.forEach(r=>r()); }
+function chk(c){ if(c.token!==RUN.token || (c.sp&&c.sp.dead)) throw STOP; }
+async function sleep(sec,c){
+  const end=performance.now()+Math.max(0,sec)*1000;
+  do{ chk(c); await frameTick(); }while(performance.now()<end);
+}
+async function exec(list,c){
+  for(const b of list){
+    chk(c);
+    const d=DEFS[b.t];
+    if(d&&d.run) await d.run(b,c);
+  }
+}
+function runStack(blocks,sp){
+  if(!blocks||!blocks.length) return Promise.resolve();
+  const d=DEFS[blocks[0].t]||{};
+  const body=d.shape==='hat'?blocks.slice(1):blocks;
+  const c={sp,token:RUN.token};
+  return exec(body,c).catch(err=>{ if(err!==STOP) log('⚠ '+(err&&err.message||err),'err'); });
+}
+function startHats(type,match){
+  const out=[];
+  allActors().forEach(sp=>{
+    (sp.scripts||[]).forEach(sc=>{
+      const b=sc.blocks[0];
+      if(!b||b.t!==type) return;
+      if(match&&!match(b,sp)) return;
+      out.push(runStack(sc.blocks,sp));
+    });
+  });
+  return out;
+}
+function greenFlag(){
+  stopAll();
+  RUN.token++; RUN.timer=performance.now(); RUN.running=true;
+  P.vars['respuesta']=P.vars['respuesta']||'';
+  const n=startHats('whenFlag').length;
+  log(n?('🏁 Ejecutando '+n+' programa(s)'):'🏁 No hay bloques «al hacer clic en 🏁»', n?'ok':'err');
+}
+function stopAll(){
+  RUN.token++; RUN.running=false;
+  RUN.clones.forEach(c=>c.dead=true); RUN.clones=[];
+  stopSounds(); stopVideo(); hideAsk();
+  P.sprites.forEach(s=>{ if(s.sayKind!=='keep') s.say=''; });
+}
+function broadcast(msg){
+  const m=String(msg).trim().toLowerCase();
+  log('📣 mensaje: '+msg);
+  return startHats('whenReceive',b=>String(b.f[0]).trim().toLowerCase()===m);
+}
+function makeClone(src){
+  if(RUN.clones.length>250){ log('Demasiados clones','err'); return; }
+  const c=Object.assign({},src);
+  c.id=uid('c'); c.isClone=true; c.dead=false;
+  c.pen=Object.assign({},src.pen); c.ai=Object.assign({},src.ai);
+  c.name=src.name;
+  RUN.clones.push(c);
+  (c.scripts||[]).forEach(sc=>{ if(sc.blocks[0]&&sc.blocks[0].t==='whenClone') runStack(sc.blocks,c); });
+}
+function setVar(name,val){ P.vars[name]=val; renderVars(); }
+function keyDown(k){
+  k=String(k).toLowerCase().trim();
+  if(k==='cualquiera') return Object.keys(KEYS).some(x=>KEYS[x]);
+  const map={'espacio':' ','arriba':'arrowup','abajo':'arrowdown','izquierda':'arrowleft','derecha':'arrowright','entrar':'enter'};
+  return !!KEYS[map[k]||k];
+}
+let askChain=Promise.resolve();           // cola: varios «preguntar» a la vez se contestan de uno en uno
+function askUser(c){
+  const p=askChain.then(()=>new Promise(res=>{
+    if(c.token!==RUN.token||(c.sp&&c.sp.dead)){ res(''); return; }   // el programa se paró mientras esperaba turno
+    const bar=$('#askBar'), inp=$('#askInput');
+    bar.style.display='flex'; inp.value=''; inp.focus();
+    RUN.asking={res,c};
+  }));
+  askChain=p;
+  return p;
+}
+function hideAsk(){ $('#askBar').style.display='none'; if(RUN.asking){ const a=RUN.asking; RUN.asking=null; a.res(''); } }
+function submitAsk(){
+  if(!RUN.asking) return;
+  const v=$('#askInput').value; const a=RUN.asking; RUN.asking=null;
+  $('#askBar').style.display='none'; a.res(v);
+}
+
+/* ---------- audio / vídeo / lápiz ---------- */
+const AUDIO={vol:1,list:[]};
+function playSound(id){
+  const a=P.assets.find(x=>x.id===id&&x.kind==='sonido');
+  if(!a){ log('Sonido no encontrado','err'); return null; }
+  const au=new Audio(a.url); au.volume=AUDIO.vol;
+  au.play().catch(()=>log('El navegador bloqueó el audio; haz clic en la página','err'));
+  AUDIO.list.push(au);
+  AUDIO.list=AUDIO.list.filter(x=>!x.ended);
+  return au;
+}
+function stopSounds(){ AUDIO.list.forEach(a=>{ try{a.pause();a.currentTime=0;}catch(e){} }); AUDIO.list=[]; }
+function playVideo(a){
+  const v=$('#vid'); v.src=a.url; v.style.display='block'; v.volume=AUDIO.vol;
+  v.play().catch(()=>{});
+  return v;
+}
+function stopVideo(){ const v=$('#vid'); try{v.pause();}catch(e){} v.style.display='none'; }
+function moveTo(sp,x,y,z){
+  const ox=sp.x, oy=sp.y;
+  sp.x=x; sp.y=y; sp.z=z;
+  if(sp.pen.down) penLine(ox,oy,x,y,sp.pen.color,sp.pen.size);
+}
+
+/* ============================================================
+   8. escenario 2D
+   ============================================================ */
+const SW=480, SH=360, PX=2;             // unidades Scratch -> píxeles internos
+const c2d=$('#c2d'), g2=c2d.getContext('2d');
+c2d.width=SW*PX; c2d.height=SH*PX;
+const PENC=document.createElement('canvas'); PENC.width=SW*PX; PENC.height=SH*PX;
+const gp=PENC.getContext('2d');
+function sx(x){ return (x+SW/2)*PX; }
+function sy(y){ return (SH/2-y)*PX; }
+function penLine(x1,y1,x2,y2,color,w){
+  gp.strokeStyle=color; gp.lineWidth=w*PX; gp.lineCap='round';
+  gp.beginPath(); gp.moveTo(sx(x1),sy(y1)); gp.lineTo(sx(x2),sy(y2)); gp.stroke();
+}
+function penClear(){ gp.clearRect(0,0,PENC.width,PENC.height); }
+function stamp(sp){ drawSprite(gp,sp); }
+
+function costumeImg(sp){
+  if(!sp.costume) return null;
+  const a=P.assets.find(x=>x.id===sp.costume);
+  return a&&a.el&&a.el.tagName==='IMG'?a.el:null;
+}
+function drawSprite(g,sp){
+  if(!sp.visible) return;
+  const img=costumeImg(sp);
+  g.save();
+  g.globalAlpha=clamp(1-sp.ghost/100,0,1);
+  g.translate(sx(sp.x),sy(sp.y));
+  g.rotate(rad(sp.dir-90));
+  const k=sp.size/100;
+  if(img){
+    const base=120/Math.max(img.width,img.height);
+    const w=img.width*base*k*PX, h=img.height*base*k*PX;
+    g.drawImage(img,-w/2,-h/2,w,h);
+  }else{
+    const r=34*k*PX;
+    g.beginPath();
+    g.moveTo(r,0); g.lineTo(-r*0.72,r*0.62); g.lineTo(-r*0.36,0); g.lineTo(-r*0.72,-r*0.62);
+    g.closePath();
+    const grd=g.createLinearGradient(-r,-r,r,r);
+    grd.addColorStop(0,sp.color); grd.addColorStop(1,'#ffffff');
+    g.fillStyle=grd; g.fill();
+    g.lineWidth=2*PX; g.strokeStyle='rgba(255,255,255,.85)'; g.stroke();
+  }
+  g.restore();
+}
+function draw2D(){
+  g2.save();
+  g2.fillStyle=P.stage.color; g2.fillRect(0,0,c2d.width,c2d.height);
+  if(P.stage.image){
+    const a=P.assets.find(x=>x.id===P.stage.image);
+    if(a&&a.el&&a.el.tagName==='IMG'){
+      const im=a.el, r=Math.max(c2d.width/im.width,c2d.height/im.height);
+      const w=im.width*r,h=im.height*r;
+      g2.drawImage(im,(c2d.width-w)/2,(c2d.height-h)/2,w,h);
+    }
+  }
+  g2.drawImage(PENC,0,0);
+  allActors().forEach(sp=>drawSprite(g2,sp));
+  g2.restore();
+}
+
+/* ============================================================
+   9. escenario 3D (WebGL propio, sin librerías)
+   ============================================================ */
+const W3=60;                                   // unidades Scratch por unidad de mundo
+const c3=$('#c3d');
+let gl=null, PR=null, MESH={}, GLOK=false;
+const VS=`
+attribute vec3 aPos; attribute vec3 aNor; attribute vec2 aUV;
+uniform mat4 uP,uV,uM;
+varying vec3 vN; varying vec2 vUV;
+void main(){ vec4 w=uM*vec4(aPos,1.0); vN=mat3(uM)*aNor; vUV=aUV; gl_Position=uP*uV*w; }`;
+const FS=`
+precision mediump float;
+uniform vec3 uColor,uLight; uniform float uUseTex,uAlpha,uFlat;
+uniform sampler2D uTex;
+varying vec3 vN; varying vec2 vUV;
+void main(){
+  vec3 c=uColor;
+  if(uUseTex>0.5){ vec4 t=texture2D(uTex,vUV); if(t.a<0.05) discard; c=t.rgb; }
+  float d=1.0;
+  if(uFlat<0.5){ vec3 n=normalize(vN); d=max(dot(n,normalize(uLight)),0.0)*0.72+0.42; }
+  gl_FragColor=vec4(c*d,uAlpha);
+}`;
+function initGL(){
+  try{ gl=c3.getContext('webgl',{antialias:true,alpha:false})||c3.getContext('experimental-webgl'); }catch(e){}
+  if(!gl){ log('WebGL no disponible: el modo 3D no funcionará','err'); return; }
+  const sh=(t,s)=>{ const o=gl.createShader(t); gl.shaderSource(o,s); gl.compileShader(o);
+    if(!gl.getShaderParameter(o,gl.COMPILE_STATUS)) log('shader: '+gl.getShaderInfoLog(o),'err'); return o; };
+  PR=gl.createProgram();
+  gl.attachShader(PR,sh(gl.VERTEX_SHADER,VS)); gl.attachShader(PR,sh(gl.FRAGMENT_SHADER,FS));
+  gl.linkProgram(PR); gl.useProgram(PR);
+  PR.aPos=gl.getAttribLocation(PR,'aPos'); PR.aNor=gl.getAttribLocation(PR,'aNor'); PR.aUV=gl.getAttribLocation(PR,'aUV');
+  ['uP','uV','uM','uColor','uLight','uUseTex','uAlpha','uTex','uFlat'].forEach(u=>PR[u]=gl.getUniformLocation(PR,u));
+  gl.enable(gl.DEPTH_TEST); gl.enable(gl.BLEND);
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  MESH.cubo=mkMesh(cubeGeo());
+  MESH.esfera=mkMesh(sphereGeo(28,18));
+  MESH.plano=mkMesh(planeGeo());
+  MESH.grid=mkMesh(gridGeo(),true);
+  MESH.blank=whiteTex();
+  GLOK=true;
+  log('Motor 3D listo (WebGL)','ok');
+}
+function mkMesh(geo,lines){
+  const m={count:geo.pos.length/3,lines:!!lines};
+  m.p=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,m.p); gl.bufferData(gl.ARRAY_BUFFER,geo.pos,gl.STATIC_DRAW);
+  m.n=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,m.n); gl.bufferData(gl.ARRAY_BUFFER,geo.nor,gl.STATIC_DRAW);
+  m.t=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,m.t); gl.bufferData(gl.ARRAY_BUFFER,geo.uv,gl.STATIC_DRAW);
+  return m;
+}
+function whiteTex(){
+  const t=gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,1,1,0,gl.RGBA,gl.UNSIGNED_BYTE,new Uint8Array([255,255,255,255]));
+  return t;
+}
+function texOf(a){
+  if(!a||!a.el||a.el.tagName!=='IMG') return null;
+  if(a.tex) return a.tex;
+  const t=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,t);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
+  try{ gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,a.el); }
+  catch(e){ return null; }
+  const p2=n=>(n&(n-1))===0;
+  if(p2(a.el.width)&&p2(a.el.height)){ gl.generateMipmap(gl.TEXTURE_2D);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR_MIPMAP_LINEAR); }
+  else{
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  }
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  a.tex=t; return t;
+}
+/* -- geometrías -- */
+function cubeGeo(){
+  const f=[
+    [[-1,-1, 1],[1,-1, 1],[1,1, 1],[-1,1, 1],[0,0,1]],
+    [[ 1,-1,-1],[-1,-1,-1],[-1,1,-1],[1,1,-1],[0,0,-1]],
+    [[-1, 1, 1],[1, 1, 1],[1,1,-1],[-1,1,-1],[0,1,0]],
+    [[-1,-1,-1],[1,-1,-1],[1,-1,1],[-1,-1,1],[0,-1,0]],
+    [[ 1,-1, 1],[1,-1,-1],[1,1,-1],[1,1,1],[1,0,0]],
+    [[-1,-1,-1],[-1,-1,1],[-1,1,1],[-1,1,-1],[-1,0,0]]
+  ];
+  const pos=[],nor=[],uv=[];
+  const UVQ=[[0,1],[1,1],[1,0],[0,0]];
+  f.forEach(q=>{
+    const n=q[4];
+    [[0,1,2],[0,2,3]].forEach(tri=>tri.forEach(i=>{
+      pos.push(q[i][0],q[i][1],q[i][2]); nor.push(n[0],n[1],n[2]); uv.push(UVQ[i][0],UVQ[i][1]);
+    }));
+  });
+  return {pos:new Float32Array(pos),nor:new Float32Array(nor),uv:new Float32Array(uv)};
+}
+function sphereGeo(sg,rg){
+  const pos=[],nor=[],uv=[];
+  const P3=(i,j)=>{
+    const u=i/sg, v=j/rg, th=u*Math.PI*2, ph=v*Math.PI;
+    return [Math.sin(ph)*Math.cos(th),Math.cos(ph),Math.sin(ph)*Math.sin(th),u,1-v];
+  };
+  for(let i=0;i<sg;i++)for(let j=0;j<rg;j++){
+    const a=P3(i,j),b=P3(i+1,j),c=P3(i+1,j+1),d=P3(i,j+1);
+    [a,b,c,a,c,d].forEach(p=>{ pos.push(p[0],p[1],p[2]); nor.push(p[0],p[1],p[2]); uv.push(p[3],p[4]); });
+  }
+  return {pos:new Float32Array(pos),nor:new Float32Array(nor),uv:new Float32Array(uv)};
+}
+function planeGeo(){
+  const pos=[-1,-1,0, 1,-1,0, 1,1,0, -1,-1,0, 1,1,0, -1,1,0];
+  const nor=[]; for(let i=0;i<6;i++) nor.push(0,0,1);
+  const uv=[0,1, 1,1, 1,0, 0,1, 1,0, 0,0];
+  return {pos:new Float32Array(pos),nor:new Float32Array(nor),uv:new Float32Array(uv)};
+}
+function gridGeo(){
+  const pos=[],nor=[],uv=[],R=10;
+  for(let i=-R;i<=R;i++){
+    pos.push(i,0,-R, i,0,R, -R,0,i, R,0,i);
+  }
+  for(let i=0;i<pos.length/3;i++){ nor.push(0,1,0); uv.push(0,0); }
+  return {pos:new Float32Array(pos),nor:new Float32Array(nor),uv:new Float32Array(uv)};
+}
+/* -- matrices -- */
+function m4id(){ return new Float32Array([1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]); }
+function m4mul(a,b){
+  const o=new Float32Array(16);
+  for(let i=0;i<4;i++)for(let j=0;j<4;j++)
+    o[i*4+j]=a[j]*b[i*4]+a[4+j]*b[i*4+1]+a[8+j]*b[i*4+2]+a[12+j]*b[i*4+3];
+  return o;
+}
+function m4persp(fovy,asp,n,f){
+  const t=1/Math.tan(fovy/2), o=new Float32Array(16);
+  o[0]=t/asp; o[5]=t; o[10]=(f+n)/(n-f); o[11]=-1; o[14]=2*f*n/(n-f); return o;
+}
+function m4look(e,c,up){
+  let z=[e[0]-c[0],e[1]-c[1],e[2]-c[2]];
+  let l=Math.hypot(z[0],z[1],z[2])||1; z=[z[0]/l,z[1]/l,z[2]/l];
+  let x=[up[1]*z[2]-up[2]*z[1],up[2]*z[0]-up[0]*z[2],up[0]*z[1]-up[1]*z[0]];
+  l=Math.hypot(x[0],x[1],x[2])||1; x=[x[0]/l,x[1]/l,x[2]/l];
+  const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+  return new Float32Array([
+    x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0,
+    -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]), -(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]), -(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]), 1]);
+}
+function m4trs(t,r,s){
+  const cx=Math.cos(rad(r[0])),sxx=Math.sin(rad(r[0]));
+  const cy=Math.cos(rad(r[1])),syy=Math.sin(rad(r[1]));
+  const cz=Math.cos(rad(r[2])),szz=Math.sin(rad(r[2]));
+  // R = Ry * Rx * Rz
+  const m00=cy*cz+syy*sxx*szz, m01=cx*szz, m02=-syy*cz+cy*sxx*szz;
+  const m10=-cy*szz+syy*sxx*cz, m11=cx*cz, m12=syy*szz+cy*sxx*cz;
+  const m20=syy*cx,             m21=-sxx,  m22=cy*cx;
+  return new Float32Array([
+    m00*s[0],m01*s[0],m02*s[0],0,
+    m10*s[1],m11*s[1],m12*s[1],0,
+    m20*s[2],m21*s[2],m22*s[2],0,
+    t[0],t[1],t[2],1]);
+}
+function hex2rgb(h){
+  h=(h||'#ffffff').replace('#','');
+  if(h.length===3) h=h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  return [parseInt(h.substr(0,2),16)/255,parseInt(h.substr(2,2),16)/255,parseInt(h.substr(4,2),16)/255];
+}
+let VPM=null;
+function draw3D(){
+  if(!GLOK) return;
+  const box=$('#stageBox').getBoundingClientRect();
+  const dpr=Math.min(2,window.devicePixelRatio||1);
+  const w=Math.max(2,Math.round(box.width*dpr)), h=Math.max(2,Math.round(box.height*dpr));
+  if(c3.width!==w||c3.height!==h){ c3.width=w; c3.height=h; }
+  gl.viewport(0,0,w,h);
+  const bg=hex2rgb(P.stage.bg3d||'#070b16');
+  gl.clearColor(bg[0],bg[1],bg[2],1); gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.useProgram(PR);
+  const proj=m4persp(rad(52),w/h,0.1,400);
+  const view=m4look([P.cam.x,P.cam.y,P.cam.z],[P.cam.tx,P.cam.ty,P.cam.tz],[0,1,0]);
+  VPM=m4mul(proj,view);
+  gl.uniformMatrix4fv(PR.uP,false,proj);
+  gl.uniformMatrix4fv(PR.uV,false,view);
+  gl.uniform3f(PR.uLight,P.light.x,P.light.y,P.light.z);
+  gl.uniform1i(PR.uTex,0);
+  if(P.stage.grid) drawMesh(MESH.grid,m4id(),[0.35,0.55,0.85],null,0.5,1);
+  allActors().forEach(sp=>{
+    if(!sp.visible) return;
+    const a=sp.model3d?P.assets.find(x=>x.id===sp.model3d):null;
+    let mesh=MESH.cubo;
+    if(sp.shape3d==='modelo'&&a&&a.mesh){
+      if(!a.glm) a.glm=mkMesh(a.mesh);
+      mesh=a.glm;
+    }else if(sp.shape3d==='esfera') mesh=MESH.esfera;
+    else if(sp.shape3d==='plano') mesh=MESH.plano;
+    const k=sp.size/100;
+    const M=m4trs([sp.x/W3,sp.y/W3,sp.z/W3],
+                  [sp.rx, sp.ry - (sp.dir-90), sp.rz],
+                  [k*sp.sx,k*sp.sy,k*sp.sz]);
+    const im=sp.costume?P.assets.find(x=>x.id===sp.costume):null;
+    drawMesh(mesh,M,hex2rgb(sp.color),im?texOf(im):null,clamp(1-sp.ghost/100,0,1),0);
+  });
+}
+function drawMesh(m,M,color,tex,alpha,flat){
+  gl.uniformMatrix4fv(PR.uM,false,M);
+  gl.uniform3f(PR.uColor,color[0],color[1],color[2]);
+  gl.uniform1f(PR.uAlpha,alpha===undefined?1:alpha);
+  gl.uniform1f(PR.uFlat,flat||0);
+  gl.uniform1f(PR.uUseTex,tex?1:0);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D,tex||MESH.blank);
+  gl.bindBuffer(gl.ARRAY_BUFFER,m.p); gl.enableVertexAttribArray(PR.aPos); gl.vertexAttribPointer(PR.aPos,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,m.n); gl.enableVertexAttribArray(PR.aNor); gl.vertexAttribPointer(PR.aNor,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,m.t); gl.enableVertexAttribArray(PR.aUV);  gl.vertexAttribPointer(PR.aUV,2,gl.FLOAT,false,0,0);
+  gl.drawArrays(m.lines?gl.LINES:gl.TRIANGLES,0,m.count);
+}
+function project3(x,y,z){
+  if(!VPM) return null;
+  const w=VPM[3]*x+VPM[7]*y+VPM[11]*z+VPM[15];
+  if(w<=0.001) return null;
+  const cx=(VPM[0]*x+VPM[4]*y+VPM[8]*z+VPM[12])/w;
+  const cy=(VPM[1]*x+VPM[5]*y+VPM[9]*z+VPM[13])/w;
+  return { l:(cx*0.5+0.5)*100, t:(0.5-cy*0.5)*100 };
+}
+
+/* ============================================================
+   10. bucle principal, superposición y modo
+   ============================================================ */
+let lastT=performance.now(), fpsAvg=60;
+function loop(){
+  requestAnimationFrame(loop);
+  flushFrame();
+  if(P.mode==='2d') draw2D(); else draw3D();
+  drawOverlay();
+  const now=performance.now();
+  fpsAvg=fpsAvg*0.92+(1000/Math.max(1,now-lastT))*0.08; lastT=now;
+  $('#pillFps').textContent=Math.round(fpsAvg)+' fps';
+}
+function drawOverlay(){
+  const ov=$('#overlay'); let html='';
+  allActors().forEach(sp=>{
+    if(!sp.visible||!sp.say) return;
+    let l,t;
+    if(P.mode==='2d'){ l=(sp.x+SW/2)/SW*100; t=(SH/2-sp.y-42*sp.size/100)/SH*100; }
+    else{ const p=project3(sp.x/W3,(sp.y/W3)+0.6*sp.size/100,sp.z/W3); if(!p) return; l=p.l; t=p.t; }
+    if(l<-20||l>120) return;
+    html+='<div class="bubble'+(sp.sayKind==='think'?' think':'')+'" style="left:'+l.toFixed(2)+'%;top:'+t.toFixed(2)+'%">'+esc(sp.say)+'</div>';
+  });
+  const mons=Object.keys(RUN.monitors);
+  if(mons.length){
+    html+='<div style="position:absolute;left:8px;top:38px;display:flex;flex-direction:column;gap:4px;align-items:flex-start">';
+    mons.forEach(v=>{ html+='<div class="pill" style="color:#fff">'+esc(v)+': <b style="color:var(--neon)">'+esc(toStr(P.vars[v]))+'</b></div>'; });
+    html+='</div>';
+  }
+  if(ov._h!==html){ ov.innerHTML=html; ov._h=html; }
+}
+function setMode(m){
+  m=(m==='3d'||m==='3D')?'3d':'2d';
+  if(P.mode===m) return;
+  P.mode=m;
+  c2d.style.display = m==='2d'?'block':'none';
+  c3.style.display  = m==='3d'?'block':'none';
+  $('#pillMode').textContent='modo '+m.toUpperCase();
+  $$('#modes button').forEach(b=>b.classList.toggle('on',b.dataset.mode===m));
+  if(m==='3d'&&!GLOK) initGL();
+  renderSprites(); saveLocal();
+}
+
+/* ============================================================
+   11. IA: compañías, claves, chat, voz
+   ============================================================ */
+const PROVIDERS=[
+  {id:'google',   name:'Google AI Studio (Gemini)', company:'Google AI Studio', ph:'AIza…',    link:'https://aistudio.google.com/apikey'},
+  {id:'anthropic',name:'Anthropic (Claude)',        company:'Anthropic',        ph:'sk-ant-…', link:'https://console.anthropic.com/settings/keys'},
+  {id:'openai',   name:'OpenAI (GPT)',              company:'OpenAI',           ph:'sk-…',     link:'https://platform.openai.com/api-keys'},
+  {id:'mistral',  name:'Mistral',                   company:'Mistral',          ph:'clave…',   link:'https://console.mistral.ai/api-keys'},
+  {id:'xai',      name:'xAI (Grok)',                company:'xAI',              ph:'xai-…',    link:'https://console.x.ai'},
+  {id:'deepseek', name:'DeepSeek',                  company:'DeepSeek',         ph:'sk-…',     link:'https://platform.deepseek.com/api_keys'},
+  {id:'groq',     name:'Groq',                      company:'Groq',             ph:'gsk_…',    link:'https://console.groq.com/keys'}
+];
+/* convierte lo que el usuario escribe como «compañía» en un id interno */
+function provKey(co){
+  const c=String(co||'').trim().toLowerCase();
+  if(!c) return '';
+  if(/^https?:\/\//.test(c)) return c;
+  if(/google|gemini|ai ?studio/.test(c)) return 'google';
+  if(/anthropic|claude/.test(c)) return 'anthropic';
+  if(/openai|gpt/.test(c)) return 'openai';
+  if(/mistral/.test(c)) return 'mistral';
+  if(/deepseek/.test(c)) return 'deepseek';
+  if(/xai|grok/.test(c)) return 'xai';
+  if(/groq/.test(c)) return 'groq';
+  if(/ollama|local|meta|llama/.test(c)) return 'local';
+  return c;
+}
+function defaultModel(co){
+  switch(provKey(co)){
+    case 'google':    return 'gemini-flash-latest';       // alias oficial: siempre apunta al Flash más reciente
+    case 'anthropic': return 'claude-sonnet-5-5';
+    case 'openai':    return 'gpt-4o-mini';
+    case 'mistral':   return 'mistral-small-latest';
+    case 'deepseek':  return 'deepseek-chat';
+    case 'xai':       return 'grok-2-latest';
+    case 'groq':      return 'llama-3.3-70b-versatile';
+    case 'local':     return 'llama3';
+  }
+  return 'auto';
+}
+
+/* ---------- almacén de claves ---------- */
+const KS={keys:{}};                 // id de proveedor -> {key, remember}
+const MODELS_SEEN={};               // id de proveedor -> modelos vistos con «Probar clave»
+function cleanKey(k){ return String(k||'').trim().replace(/^["'`]+|["'`]+$/g,'').replace(/\s+/g,''); }
+function maskKey(k){ k=String(k||''); return k.length>10?k.slice(0,4)+'…'+k.slice(-4):'••••'; }
+function ksGet(id){ const e=KS.keys[id]; return e?e.key:''; }
+function ksPersist(){                // solo se guardan en el navegador las claves marcadas «recordar»
+  const out={};
+  Object.keys(KS.keys).forEach(k=>{ if(KS.keys[k].remember) out[k]={key:KS.keys[k].key,remember:true}; });
+  try{
+    if(Object.keys(out).length) localStorage.setItem('cececratch.keys',JSON.stringify(out));
+    else localStorage.removeItem('cececratch.keys');
+  }catch(e){}
+}
+function ksLoad(){
+  try{
+    const r=JSON.parse(localStorage.getItem('cececratch.keys')||'null');
+    if(r&&typeof r==='object') Object.keys(r).forEach(k=>{
+      if(r[k]&&typeof r[k].key==='string'&&r[k].key) KS.keys[k]={key:r[k].key,remember:true};
+    });
+  }catch(e){}
+  try{
+    const a=JSON.parse(localStorage.getItem('cececratch.ai')||'null');
+    if(a&&typeof a==='object'){ P.ai.company=String(a.company||''); P.ai.model=String(a.model||'auto'); }
+  }catch(e){}
+}
+function saveAiDefault(){
+  try{ localStorage.setItem('cececratch.ai',JSON.stringify({company:P.ai.company,model:P.ai.model})); }catch(e){}
+}
+
+/* configuración efectiva: bloques del programa > compañía/clave guardadas en 🔑 Claves > cerebro local */
+function aiCfg(sp){
+  const a=(sp&&sp.ai)||{};
+  const explicit=!!(a.company||P.ai.company);
+  const company=a.company||P.ai.company||'Local';
+  const prov=provKey(company);
+  const fits=(k,f)=>!!k&&(!f||f===prov);
+  let key='',from='';
+  if(fits(a.key,a.keyFor)){ key=a.key; from='bloque'; }
+  else if(fits(P.ai.key,P.ai.keyFor)){ key=P.ai.key; from='bloque'; }
+  else if(ksGet(prov)){ key=ksGet(prov); from=KS.keys[prov].remember?'guardada':'esta sesión'; }
+  const model=(a.model&&a.model!=='auto')?a.model:((P.ai.model&&P.ai.model!=='auto')?P.ai.model:'');
+  return {company,prov,model,key,from,explicit};
+}
+function updateAiStatus(){
+  const el=$('#aiStatus'); if(!el) return;
+  const c=aiCfg(currentSprite());
+  const pr=PROVIDERS.find(p=>p.id===c.prov);
+  const nm=pr?pr.name:c.company;
+  const mo=c.model||defaultModel(c.company);
+  el.innerHTML='✦ IA activa: <b>'+esc(nm)+'</b> · modelo <b>'+esc(mo)+'</b> · '+
+    (c.key?'<span class="okk">clave ✔ ('+esc(c.from)+')</span>'
+          :'<span class="no">sin clave → cerebro local</span> · <a href="#" id="aiGoKeys" class="keyLink">poner clave</a>');
+  const g=$('#aiGoKeys'); if(g) g.onclick=e=>{ e.preventDefault(); openTab('pKeys'); };
+}
+
+/* ---------- red ---------- */
+async function fetchT(url,opts,ms){
+  const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),ms||45000);
+  try{ return await fetch(url,Object.assign({},opts,{signal:ac.signal})); }
+  catch(e){
+    if(e&&e.name==='AbortError') throw new Error('tiempo de espera agotado: la compañía no responde');
+    throw new Error('no se pudo conectar con la API (¿sin internet, o el proveedor bloquea CORS desde el navegador?)');
+  }
+  finally{ clearTimeout(t); }
+}
+async function readJSON(r){ try{ return await r.json(); }catch(e){ return null; } }
+
+/* ---------- Google AI Studio (Gemini API) ---------- */
+const G_BASE='https://generativelanguage.googleapis.com/v1beta/';
+function googleErr(status,d){
+  const m=(d&&d.error&&d.error.message)||('HTTP '+status);
+  if(status===400&&/api key/i.test(m)) return 'clave no válida: cópiala entera desde Google AI Studio (empieza por AIza)';
+  if(status===401) return 'clave rechazada (401): '+m;
+  if(status===403) return 'acceso denegado (403): la clave no puede usar la API de Gemini — '+m;
+  if(status===404) return 'modelo no encontrado (404): pulsa «Probar clave» para ver los modelos de tu clave, o deja el modelo en «auto» — '+m;
+  if(status===429) return 'cuota agotada o demasiadas peticiones (429): espera un minuto o prueba otro modelo';
+  return m;
+}
+async function googleGenerate(prompt,model,key){
+  const name=String(model||'gemini-flash-latest').replace(/^models\//,'');
+  const r=await fetchT(G_BASE+'models/'+encodeURIComponent(name)+':generateContent',{
+    method:'POST',
+    headers:{'content-type':'application/json','x-goog-api-key':key},
+    body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}]})
+  });
+  const d=await readJSON(r);
+  if(!r.ok||!d||d.error) throw new Error(googleErr(r.status,d));
+  const cand=(d.candidates||[])[0];
+  if(!cand){
+    const br=d.promptFeedback&&d.promptFeedback.blockReason;
+    throw new Error(br?('Google bloqueó la petición ('+br+')'):'respuesta vacía de Google');
+  }
+  const txt=((cand.content&&cand.content.parts)||[]).map(p=>p.text||'').join('').trim();
+  if(!txt) throw new Error('Google no devolvió texto'+(cand.finishReason?' ('+cand.finishReason+')':''));
+  return txt;
+}
+async function googleModels(key){
+  const r=await fetchT(G_BASE+'models?pageSize=1000',{headers:{'x-goog-api-key':key}},20000);
+  const d=await readJSON(r);
+  if(!r.ok||!d||d.error) throw new Error(googleErr(r.status,d));
+  return (d.models||[])
+    .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+    .map(m=>String(m.name||'').replace(/^models\//,''))
+    .filter(Boolean);
+}
+
+/* ---------- cerebro local y resto de compañías ---------- */
+function localBrain(q){
+  const t=(q||'').toLowerCase();
+  if(/hola|buenas|hey/.test(t)) return '¡Hola! Soy la IA local de CeceCratch. Pon una clave en 🔑 Claves API (por ejemplo de Google AI Studio) para conectarme de verdad.';
+  if(/qui[eé]n eres|c[oó]mo te llamas/.test(t)) return 'Soy el cerebro de demostración de CeceCratch. Sin clave API respondo yo, offline.';
+  if(/3d|modelo|obj/.test(t)) return 'Sube un archivo .obj en la pestaña Archivos y úsalo con el bloque ✦ modelo 3D.';
+  if(/bloque|programa|c[oó]digo/.test(t)) return 'Arrastra bloques desde la paleta; los de la categoría IA ✦ son los especiales de CeceCratch.';
+  if(/\d/.test(t)){
+    const n=(t.match(/-?\d+(\.\d+)?/g)||[]).map(Number);
+    if(n.length>=2) return 'La suma de esos números es '+n.reduce((a,b)=>a+b,0)+'.';
+  }
+  const ec=['Interesante. Cuéntame más.','Puedo ayudarte con eso dentro del proyecto.','Anotado: «'+q+'».'];
+  return ec[Math.floor(Math.random()*ec.length)];
+}
+async function aiRequest(prompt,cfg){
+  const prov=cfg.prov||provKey(cfg.company);
+  const model=cfg.model||defaultModel(cfg.company);
+  const key=cfg.key;
+  if(!key && prov!=='local') return localBrain(prompt);
+  if(!key && cfg.explicit===false) return localBrain(prompt);
+  const oai=async url=>{
+    const r=await fetchT(url,{method:'POST',
+      headers:{'content-type':'application/json','authorization':'Bearer '+key},
+      body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:600})});
+    const d=await readJSON(r);
+    if(!r.ok||!d||d.error) throw new Error((d&&d.error&&(d.error.message||JSON.stringify(d.error)))||('HTTP '+r.status));
+    return (d.choices&&d.choices[0]&&d.choices[0].message&&d.choices[0].message.content)||'(sin respuesta)';
+  };
+  switch(prov){
+    case 'google': return googleGenerate(prompt,model,key);
+    case 'anthropic':{
+      const r=await fetchT('https://api.anthropic.com/v1/messages',{method:'POST',
+        headers:{'content-type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01',
+                 'anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model,max_tokens:600,messages:[{role:'user',content:prompt}]})});
+      const d=await readJSON(r);
+      if(!r.ok||!d||d.error) throw new Error((d&&d.error&&d.error.message)||('HTTP '+r.status));
+      return (d.content&&d.content[0]&&d.content[0].text)||'(sin respuesta)';
+    }
+    case 'openai':   return oai('https://api.openai.com/v1/chat/completions');
+    case 'mistral':  return oai('https://api.mistral.ai/v1/chat/completions');
+    case 'deepseek': return oai('https://api.deepseek.com/chat/completions');
+    case 'xai':      return oai('https://api.x.ai/v1/chat/completions');
+    case 'groq':     return oai('https://api.groq.com/openai/v1/chat/completions');
+    case 'local':{
+      const r=await fetchT('http://localhost:11434/api/chat',{method:'POST',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({model,stream:false,messages:[{role:'user',content:prompt}]})});
+      const d=await readJSON(r);
+      return (d&&d.message&&d.message.content)||'(sin respuesta)';
+    }
+  }
+  if(/^https?:\/\//.test(String(cfg.company))) return oai(String(cfg.company).replace(/\/$/,'')+'/v1/chat/completions');
+  return oai('https://api.openai.com/v1/chat/completions');
+}
+
+/* ---------- chat y voz ---------- */
+function addChat(who,text){
+  const l=$('#chatLog');
+  const d=document.createElement('div');
+  d.className='m '+(who==='tú'?'you':'ia');
+  d.innerHTML='<span class="who">'+esc(who)+'</span>'+esc(text);
+  l.appendChild(d); l.scrollTop=l.scrollHeight;
+}
+function speak(text){
+  try{
+    if(!window.speechSynthesis) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='es-ES'; u.rate=1.02; speechSynthesis.speak(u);
+  }catch(e){}
+}
+function listen(){
+  return new Promise(res=>{
+    const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){ log('Este navegador no tiene reconocimiento de voz','err'); return res(''); }
+    const r=new SR(); r.lang='es-ES'; r.interimResults=false; r.maxAlternatives=1;
+    let done=false;
+    r.onresult=e=>{ done=true; res(e.results[0][0].transcript); };
+    r.onerror=e=>{ if(!done){ done=true; log('Micrófono: '+e.error,'err'); res(''); } };
+    r.onend=()=>{ if(!done){ done=true; res(''); } };
+    log('🎤 Escuchando…');
+    try{ r.start(); }catch(e){ res(''); }
+  });
+}
+async function doChat(mode,text,ctx){
+  const sp=ctx&&ctx.sp?ctx.sp:currentSprite();
+  const cfg=aiCfg(sp);
+  let msg=text;
+  if(/micr[oó]fono/.test(mode)){
+    sp.say='🎤 Escuchando…'; sp.sayKind='say';
+    const heard=await listen();
+    sp.say='';
+    if(heard) msg=heard;
+    log('🎤 Has dicho: '+(heard||'(nada)'));
+  }
+  addChat('tú',msg);
+  sp.say='…'; sp.sayKind='think';
+  let ans='';
+  try{
+    ans=await aiRequest(msg,cfg);
+  }catch(err){
+    log('IA ('+cfg.company+'): '+err.message,'err');
+    ans='No pude conectar con '+cfg.company+' ('+err.message+'). Respondo en local: '+localBrain(msg);
+  }
+  ans=String(ans).trim();
+  P.vars['respuestaIA']=ans; renderVars();
+  addChat(cfg.company||'IA',ans);
+  sp.say=ans.slice(0,220); sp.sayKind='say';
+  if(/altavoz/.test(mode)) speak(ans);
+  log('✦ '+(cfg.company||'IA')+' respondió ('+ans.length+' caracteres)','ok');
+  return ans;
+}
+
+/* ---------- panel 🔑 Claves ---------- */
+function openTab(id){
+  $$('#tabs button').forEach(x=>x.classList.toggle('on',x.dataset.p===id));
+  $$('.panel').forEach(p=>p.classList.toggle('on',p.id===id));
+}
+function provById(id){ return PROVIDERS.find(p=>p.id===id)||PROVIDERS[0]; }
+function setKeyMsg(t,cls){ const m=$('#keyMsg'); m.className=cls||''; m.textContent=t||''; }
+function fillModelList(id){
+  const dl=$('#keyModels'); dl.innerHTML='';
+  (MODELS_SEEN[id]||[]).forEach(m=>{ const o=document.createElement('option'); o.value=m; dl.appendChild(o); });
+}
+function fillKeyForm(){
+  const p=provById($('#keyProv').value);
+  const e=KS.keys[p.id];
+  $('#keyVal').value=e?e.key:'';
+  $('#keyVal').placeholder=p.ph;
+  $('#keyRemember').checked=e?!!e.remember:false;
+  $('#keyModel').value=(P.ai.company&&provKey(P.ai.company)===p.id&&P.ai.model&&P.ai.model!=='auto')?P.ai.model:'';
+  $('#keyModel').placeholder='auto → '+defaultModel(p.company);
+  fillModelList(p.id);
+  const lk=$('#keyLink'); lk.href=p.link; lk.textContent='Conseguir una clave de '+p.name+' →';
+  setKeyMsg('');
+}
+function renderKeyList(){
+  const box=$('#keyList'); box.innerHTML='';
+  const ids=Object.keys(KS.keys);
+  if(!ids.length){
+    box.innerHTML='<p style="color:var(--dim);font-size:12px;line-height:1.6">Todavía no has guardado ninguna clave. '+
+      'Sin clave, el bloque <b>✦ chat</b> usa el cerebro local de demostración.</p>';
+    return;
+  }
+  ids.forEach(id=>{
+    const pr=PROVIDERS.find(q=>q.id===id), e=KS.keys[id];
+    const d=document.createElement('div'); d.className='keyItem';
+    d.innerHTML='<b>'+esc(pr?pr.name:id)+'</b><code>'+esc(maskKey(e.key))+'</code><span class="sp"></span>'+
+      '<span style="color:var(--dim);font-size:11px">'+(e.remember?'guardada en este navegador':'solo esta sesión')+'</span>';
+    const x=document.createElement('span'); x.className='x'; x.textContent='✕'; x.title='Borrar esta clave';
+    x.onclick=()=>{ delete KS.keys[id]; ksPersist(); renderKeyList(); fillKeyForm(); updateAiStatus(); };
+    d.appendChild(x); box.appendChild(d);
+  });
+}
+function initKeysPanel(){
+  const sel=$('#keyProv');
+  PROVIDERS.forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=p.name; sel.appendChild(o); });
+  sel.onchange=fillKeyForm;
+  $('#keyEye').onclick=()=>{ const i=$('#keyVal'); i.type=i.type==='password'?'text':'password'; };
+  $('#keyTest').onclick=async()=>{
+    const p=provById(sel.value), key=cleanKey($('#keyVal').value), model=$('#keyModel').value.trim();
+    if(!key){ setKeyMsg('Pega primero la clave.','err'); return; }
+    setKeyMsg('Probando la clave…','wait');
+    try{
+      if(p.id==='google'){
+        const list=await googleModels(key);
+        MODELS_SEEN.google=list; fillModelList('google'); renderScripts();
+        setKeyMsg('✔ Clave válida · '+list.length+' modelos disponibles. Elige uno en «Modelo» o deja «auto» ('+defaultModel(p.company)+').','ok');
+      }else{
+        const ans=await aiRequest('Responde solo con la palabra: ok',{company:p.company,prov:p.id,model,key,explicit:true});
+        setKeyMsg('✔ La clave funciona. Respuesta de la IA: «'+String(ans).slice(0,60)+'»','ok');
+      }
+    }catch(err){ setKeyMsg('✖ '+err.message,'err'); }
+  };
+  $('#keySave').onclick=()=>{
+    const p=provById(sel.value), key=cleanKey($('#keyVal').value);
+    if(!key){ setKeyMsg('Pega primero la clave.','err'); return; }
+    const model=$('#keyModel').value.trim()||'auto';
+    KS.keys[p.id]={key,remember:$('#keyRemember').checked};
+    P.ai.company=p.company; P.ai.model=model; P.ai.key=''; P.ai.keyFor='';   // la clave guardada manda hasta que un bloque diga otra cosa
+    currentSprite().ai.company=''; currentSprite().ai.model='auto'; currentSprite().ai.key=''; currentSprite().ai.keyFor='';
+    ksPersist(); saveAiDefault(); renderKeyList(); updateAiStatus();
+    const warn=(p.id==='google'&&!/^AIza/.test(key))?' Ojo: las claves de Google AI Studio suelen empezar por «AIza»; pulsa «Probar clave» para comprobarla.':'';
+    setKeyMsg('✔ Guardada ('+maskKey(key)+'). Ahora el chat usa '+p.name+' · modelo '+(model==='auto'?defaultModel(p.company):model)+'.'+warn,'ok');
+    log('🔑 Clave de '+p.name+' guardada '+(KS.keys[p.id].remember?'en este navegador':'solo para esta sesión'),'ok');
+  };
+  fillKeyForm(); renderKeyList();
+}
+
+/* ============================================================
+   12. guardar / abrir proyecto
+   ============================================================ */
+function blobToDataURL(b){
+  return new Promise(res=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.readAsDataURL(b); });
+}
+function stripKeys(blocks){
+  return blocks.map(b=>{
+    const n={id:b.id,t:b.t,f:Object.assign({},b.f)};
+    if(b.t==='apiKey') n.f[0]='';
+    if(b.sub) n.sub=b.sub.map(stripKeys);
+    return n;
+  });
+}
+function projectData(){
+  return {
+    v:1, mode:P.mode, stage:P.stage, cam:P.cam, light:P.light, vars:P.vars,
+    ai:{company:P.ai.company,model:P.ai.model},
+    sprites:P.sprites.map(s=>({
+      id:s.id,name:s.name,x:s.x,y:s.y,z:s.z,dir:s.dir,rx:s.rx,ry:s.ry,rz:s.rz,
+      sx:s.sx,sy:s.sy,sz:s.sz,size:s.size,visible:s.visible,ghost:s.ghost,color:s.color,
+      costume:s.costume,model3d:s.model3d,shape3d:s.shape3d,pen:s.pen,
+      ai:{company:s.ai.company,model:s.ai.model,key:'',keyFor:''},
+      scripts:s.scripts.map(sc=>({x:sc.x,y:sc.y,blocks:stripKeys(sc.blocks)}))
+    }))
+  };
+}
+async function saveProject(){
+  const d=projectData();
+  d.assets=[];
+  for(const a of P.assets){
+    try{ d.assets.push({id:a.id,name:a.name,kind:a.kind,ext:a.ext,data:await blobToDataURL(a.blob)}); }
+    catch(e){ log('No pude guardar '+a.name,'err'); }
+  }
+  const blob=new Blob([JSON.stringify(d)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='cececratch-proyecto.json'; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);
+  log('💾 Proyecto guardado ('+(blob.size/1024|0)+' KB). Las claves API no se guardan.','ok');
+}
+async function loadProject(data){
+  stopAll();
+  P.assets=[]; P.sprites=[];
+  P.mode='2d';
+  Object.assign(P.stage,data.stage||{});
+  Object.assign(P.cam,data.cam||{});
+  Object.assign(P.light,data.light||{});
+  P.vars=data.vars||{};
+  P.ai.company=(data.ai&&data.ai.company)||''; P.ai.model=(data.ai&&data.ai.model)||'auto'; P.ai.key=''; P.ai.keyFor='';
+  for(const a of (data.assets||[])){
+    try{
+      const blob=await (await fetch(a.data)).blob();
+      const f=new File([blob],a.name,{type:blob.type});
+      const na=await addAsset(f,a.ext);
+      na.id=a.id;                                   // conserva referencias
+    }catch(e){ log('Archivo dañado: '+a.name,'err'); }
+  }
+  (data.sprites||[]).forEach(s=>{
+    const n=newSprite(s.name);
+    Object.assign(n,s);
+    n.pen=Object.assign({down:false,color:'#00e5ff',size:3},s.pen||{});
+    n.ai=Object.assign({company:'',model:'auto',key:'',keyFor:''},s.ai||{});
+    n.scripts=(s.scripts||[]).map(sc=>({x:sc.x,y:sc.y,blocks:sc.blocks}));
+    P.sprites.push(n);
+  });
+  if(!P.sprites.length) P.sprites.push(newSprite('Objeto1'));
+  P.current=0;
+  penClear(); renderAll();
+  setMode(data.mode||'2d');
+  log('📂 Proyecto cargado: '+P.sprites.length+' objeto(s), '+P.assets.length+' archivo(s)','ok');
+}
+let saveT=0;
+function saveLocal(){
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{
+    try{ localStorage.setItem('cececratch',JSON.stringify(projectData())); }catch(e){}
+  },600);
+}
+function loadLocal(){
+  try{
+    const raw=localStorage.getItem('cececratch'); if(!raw) return false;
+    const d=JSON.parse(raw);
+    if(!d.sprites||!d.sprites.length) return false;
+    Object.assign(P.stage,d.stage||{}); Object.assign(P.cam,d.cam||{}); Object.assign(P.light,d.light||{});
+    P.vars=d.vars||{};
+    P.sprites=d.sprites.map(s=>{
+      const n=newSprite(s.name); Object.assign(n,s);
+      n.pen=Object.assign({down:false,color:'#00e5ff',size:3},s.pen||{});
+      n.ai=Object.assign({company:'',model:'auto',key:'',keyFor:''},s.ai||{});
+      n.costume=null; n.model3d=null;              // los archivos no se guardan en local
+      return n;
+    });
+    P.current=0;
+    log('Se recuperó tu último programa (los archivos hay que volver a subirlos)');
+    return true;
+  }catch(e){ return false; }
+}
+function renderAll(){ renderPalette(); renderScripts(); renderSprites(); renderAssets(); renderVars(); }
+function renderVars(){
+  const box=$('#varList'); if(!box) return;
+  box.innerHTML='';
+  Object.keys(P.vars).forEach(k=>{
+    const d=document.createElement('div'); d.className='varChip';
+    d.innerHTML=esc(k)+' = <b>'+esc(toStr(P.vars[k]))+'</b> ';
+    const x=document.createElement('span'); x.textContent='✕'; x.style.cssText='cursor:pointer;opacity:.5;margin-left:6px';
+    x.onclick=()=>{ delete P.vars[k]; delete RUN.monitors[k]; renderVars(); renderPalette(); saveLocal(); };
+    d.appendChild(x); box.appendChild(d);
+  });
+  if(!Object.keys(P.vars).length) box.innerHTML='<span style="color:var(--dim);font-size:12px">Sin variables todavía.</span>';
+}
+
+/* ============================================================
+   13. interfaz: eventos
+   ============================================================ */
+$$('#modes button').forEach(b=>b.onclick=()=>setMode(b.dataset.mode));
+$('#btnRun').onclick=greenFlag;
+$('#btnStop').onclick=()=>{ stopAll(); log('⏹ Detenido'); };
+$('#btnSave').onclick=saveProject;
+$('#btnKeys').onclick=()=>{ openTab('pKeys'); setTimeout(()=>$('#keyVal').focus(),0); };
+$('#btnHelp').onclick=()=>$('#help').classList.add('on');
+$('#helpClose').onclick=()=>$('#help').classList.remove('on');
+$('#help').onclick=e=>{ if(e.target.id==='help') $('#help').classList.remove('on'); };
+$('#fileProject').onchange=async e=>{
+  const f=e.target.files[0]; if(!f) return;
+  try{ await loadProject(JSON.parse(await f.text())); }
+  catch(err){ log('No pude abrir el proyecto: '+err.message,'err'); }
+  e.target.value='';
+};
+$$('#tabs button').forEach(b=>b.onclick=()=>openTab(b.dataset.p));
+$('#btnAddSprite').onclick=addSprite;
+$('#btnAddVar').onclick=()=>{
+  const n=$('#newVarName').value.trim(); if(!n) return;
+  P.vars[n]=0; $('#newVarName').value=''; renderVars(); renderPalette(); saveLocal();
+};
+$('#newVarName').onkeydown=e=>{ if(e.key==='Enter') $('#btnAddVar').click(); };
+$('#btnClean').onclick=()=>{
+  const sp=currentSprite(); let y=24;
+  sp.scripts.forEach(sc=>{ sc.x=28; sc.y=y; y+=Math.max(90,countBlocks(sc.blocks)*46+40); });
+  renderScripts(); saveLocal();
+};
+function countBlocks(arr){
+  return arr.reduce((n,b)=>n+1+((b.sub||[]).reduce((m,s)=>m+countBlocks(s),0)),0);
+}
+$('#btnDupScript').onclick=()=>{
+  const sp=currentSprite(); const n=newSprite(sp.name+' copia');
+  Object.assign(n,{x:sp.x+20,y:sp.y,z:sp.z,color:sp.color,costume:sp.costume,model3d:sp.model3d,
+                   shape3d:sp.shape3d,size:sp.size,dir:sp.dir});
+  n.id=uid('s'); n.scripts=sp.scripts.map(sc=>({x:sc.x,y:sc.y,blocks:cloneStack(sc.blocks)}));
+  P.sprites.push(n); P.current=P.sprites.length-1;
+  renderSprites(); renderScripts(); saveLocal();
+};
+$('#btnClear').onclick=()=>{
+  if(!confirm('¿Borrar todos los bloques de «'+currentSprite().name+'»?')) return;
+  currentSprite().scripts=[]; renderScripts(); saveLocal();
+};
+
+/* archivos */
+$('#drop').onclick=()=>$('#fileAssets').click();
+$('#fileAssets').onchange=async e=>{ await addFiles(Array.from(e.target.files)); e.target.value=''; };
+['dragenter','dragover'].forEach(ev=>document.addEventListener(ev,e=>{
+  e.preventDefault(); $('#drop').classList.add('hot');
+}));
+['dragleave','drop'].forEach(ev=>document.addEventListener(ev,e=>{
+  e.preventDefault(); if(ev==='dragleave'&&e.relatedTarget) return; $('#drop').classList.remove('hot');
+}));
+document.addEventListener('drop',async e=>{
+  e.preventDefault();
+  const fs=Array.from((e.dataTransfer&&e.dataTransfer.files)||[]);
+  if(fs.length){ openTab('pArchivos'); await addFiles(fs); }
+});
+
+/* chat */
+$('#chatForm').onsubmit=async e=>{
+  e.preventDefault();
+  const t=$('#chatInput').value.trim(); if(!t) return;
+  $('#chatInput').value='';
+  await doChat('texto',t,{sp:currentSprite(),token:RUN.token});
+};
+$('#btnMic').onclick=async ()=>{
+  await doChat('micrófono y altavoz','',{sp:currentSprite(),token:RUN.token});
+};
+
+/* teclado */
+window.addEventListener('keydown',e=>{
+  const tag=(e.target.tagName||'').toUpperCase();
+  const typing=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+  const k=e.key.toLowerCase();
+  if(!typing){
+    KEYS[k]=true;
+    if(k===' '||k.startsWith('arrow')) e.preventDefault();
+    startHats('whenKey',b=>{
+      const f=String(b.f[0]||'').toLowerCase();
+      if(f==='cualquiera') return true;
+      const map={'espacio':' ','arriba':'arrowup','abajo':'arrowdown','izquierda':'arrowleft','derecha':'arrowright','entrar':'enter'};
+      return (map[f]||f)===k;
+    });
+  }
+  if(e.key==='Escape'){ stopAll(); $('#help').classList.remove('on'); }
+});
+window.addEventListener('keyup',e=>{ KEYS[e.key.toLowerCase()]=false; });
+window.addEventListener('blur',()=>{ for(const k in KEYS) KEYS[k]=false; });
+$('#askInput').onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); submitAsk(); } };
+$('#askOk').onclick=submitAsk;
+
+/* escenario: ratón, clic en objetos y órbita 3D */
+const stageBox=$('#stageBox');
+function stagePos(e){
+  const r=stageBox.getBoundingClientRect();
+  return { x:((e.clientX-r.left)/r.width-0.5)*SW, y:(0.5-(e.clientY-r.top)/r.height)*SH,
+           px:(e.clientX-r.left)/r.width*100, py:(e.clientY-r.top)/r.height*100 };
+}
+let orbit=null;
+stageBox.addEventListener('pointermove',e=>{
+  const p=stagePos(e); MOUSE.x=p.x; MOUSE.y=p.y;
+  if(orbit&&P.mode==='3d'){
+    const dx=e.clientX-orbit.x, dy=e.clientY-orbit.y;
+    orbit.x=e.clientX; orbit.y=e.clientY;
+    const c=P.cam, vx=c.x-c.tx, vy=c.y-c.ty, vz=c.z-c.tz;
+    const r=Math.hypot(vx,vy,vz)||1;
+    let az=Math.atan2(vx,vz)-dx*0.01;
+    let el=Math.acos(clamp(vy/r,-1,1))+dy*0.01;
+    el=clamp(el,0.12,Math.PI-0.12);
+    c.x=c.tx+r*Math.sin(el)*Math.sin(az);
+    c.y=c.ty+r*Math.cos(el);
+    c.z=c.tz+r*Math.sin(el)*Math.cos(az);
+  }
+});
+stageBox.addEventListener('pointerdown',e=>{
+  MOUSE.down=true;
+  const p=stagePos(e);
+  let hit=null;
+  if(P.mode==='2d'){
+    allActors().forEach(sp=>{ if(!sp.visible) return;
+      if(Math.hypot(sp.x-p.x,sp.y-p.y)<40*sp.size/100+12) hit=sp; });
+  }else{
+    allActors().forEach(sp=>{ if(!sp.visible) return;
+      const q=project3(sp.x/W3,sp.y/W3,sp.z/W3); if(!q) return;
+      if(Math.hypot(q.l-p.px,q.t-p.py)<7) hit=sp; });
+  }
+  if(hit){
+    (hit.scripts||[]).forEach(sc=>{ if(sc.blocks[0]&&sc.blocks[0].t==='whenClick') runStack(sc.blocks,hit); });
+  }else if(P.mode==='3d'){
+    orbit={x:e.clientX,y:e.clientY}; stageBox.setPointerCapture(e.pointerId);
+  }
+});
+window.addEventListener('pointerup',()=>{ MOUSE.down=false; orbit=null; });
+stageBox.addEventListener('wheel',e=>{
+  if(P.mode!=='3d') return;
+  e.preventDefault();
+  const c=P.cam, v=[c.x-c.tx,c.y-c.ty,c.z-c.tz];
+  const k=e.deltaY>0?1.1:0.9;
+  const r=Math.hypot(v[0],v[1],v[2]);
+  if(r*k>1.2&&r*k<160){ c.x=c.tx+v[0]*k; c.y=c.ty+v[1]*k; c.z=c.tz+v[2]*k; }
+},{passive:false});
+
+/* ============================================================
+   14. arranque
+   ============================================================ */
+function demo(){
+  const s=P.sprites[0];
+  const mk=(t,vals)=>{ const b=newBlock(t); (vals||[]).forEach((v,i)=>{ if(v!==null) b.f[i]=v; }); return b; };
+  const rep=mk('repeat',['36']);
+  rep.sub[0]=[ mk('move',['7']), mk('turnR',['10']) ];
+  s.scripts.push({x:40,y:40,blocks:[
+    mk('whenFlag'),
+    mk('sayFor',['¡Hola! Soy CeceCratch ✦','1.5']),
+    mk('penDown'),
+    mk('penColor',['#00e5ff']),
+    rep,
+    mk('penUp'),
+    mk('say',['Sube archivos y prueba los bloques ✦ de IA'])
+  ]});
+  s.scripts.push({x:560,y:40,blocks:[
+    mk('whenKey',['espacio']),
+    mk('setMode',['3D']),
+    mk('shape3d',['cubo']),
+    mk('forever')
+  ]});
+  const f=s.scripts[1].blocks[3];
+  f.sub[0]=[ mk('rot3d',['0.4','1.1','0.2']), mk('camOrbit',['0.25']) ];
+}
+function boot(){
+  P.vars={'mi variable':0,'respuestaIA':'','respuesta':''};
+  ksLoad();                                   // claves «recordadas» y compañía por defecto
+  const restored=loadLocal();
+  if(!restored){ P.sprites=[newSprite('Objeto1')]; demo(); }
+  P.current=0;
+  initKeysPanel();
+  renderAll();
+  initGL();
+  loop();
+  log('◆ CeceCratch listo. Pulsa 🏁 Ejecutar o la tecla espacio para el modo 3D.','ok');
+  const c=aiCfg(currentSprite());
+  addChat('CeceCratch', c.key
+    ? '¡Hola! Tengo una clave de '+c.company+' guardada: escríbeme y te contesto de verdad.'
+    : '¡Hola! Pulsa 🔑 Claves API para poner tu clave de Google AI Studio (u otra compañía). Mientras tanto te respondo yo, en local.');
+}
+boot();
+</script>
+</body>
+</html>
